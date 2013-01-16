@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.link {
+  stroke: #999;
+  stroke-opacity: .6;
+}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script type="text/javascript">
+	var width = 960,
+	height = 500;
+	
+	var color = d3.scale.category10();
+	
+	var nodes = [],
+	links = [];
+	
+	var force = d3.layout.force()
+	.nodes(nodes)
+	.links(links)
+	.charge(-400)
+	.linkDistance(function(d){return d.strength * 10})
+	.size([width, height])
+	.on("tick", tick);
+	
+	var svg = d3.select("body").append("svg")
+	.attr("width", width)
+	.attr("height", height);
+	
+	var node = svg.selectAll(".node"),
+	link = svg.selectAll(".link");
+	
+	/*
+	//1. Add three nodes and three links.
+	setTimeout(function() {
+	var a = {id: "a"}, b = {id: "b"}, c = {id: "c"};
+	nodes.push(a, b, c);
+	links.push({source: a, target: b}, {source: a, target: c}, {source: b, target: c});
+	start();
+	}, 0);
+	
+	//2. Remove node B and associated links.
+	setTimeout(function() {
+	nodes.splice(1, 1); // remove b
+	links.shift(); // remove a-b
+	links.pop(); // remove b-c
+	start();
+	}, 3000);
+	
+	//Add node B back.
+	setTimeout(function() {
+	var a = nodes[0], b = {id: "b"}, c = nodes[1];
+	nodes.push(b);
+	links.push({source: a, target: b}, {source: b, target: c});
+	start();
+	}, 6000);
+	*/
+	function start() {
+	link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; });
+	link.enter().insert("line", ".node").attr("class", "link");
+	link.exit().remove();
+	
+	node = node.data(force.nodes(), function(d) { return d.id;});
+	node.enter().append("circle")
+	.attr("class", function(d) { return "node " + d.id; });
+	node.attr("r", function(d) { return d.activation * 10 + 1});
+	node.exit().remove();
+	
+	force.start();
+	}
+	
+	function tick() {
+	node.attr("cx", function(d) { return d.x; })
+	  .attr("cy", function(d) { return d.y; })
+	
+	link.attr("x1", function(d) { return d.source.x; })
+	  .attr("y1", function(d) { return d.source.y; })
+	  .attr("x2", function(d) { return d.target.x; })
+	  .attr("y2", function(d) { return d.target.y; });
+	}
+	
+	function findById(id) {
+		  for (var i = 0; i < nodes.length; i++) {
+		    if (nodes[i].id === id) {
+		      return nodes[i];
+		    }
+		  }
+		  throw "Couldn't find object with id: " + id;
+		}
+	
+	function removeById(id) {
+		  for (var i = 0; i < nodes.length; i++) {
+		    if (nodes[i].id === id) {
+		      	nodes.splice(i, 1);
+		    	break;
+		    }
+		  }
+		  for (var i = 0; i < links.length; i++) {
+			    if (links[i].target.id == id || links[i].source.id == id) {
+			      	links.splice(i, 1);
+			    	i--;
+			    }
+			  }
+		}
+	
+	function changeActivationById(id, newAct){
+		for (var i = 0; i < nodes.length; i++) {
+		    if (nodes[i].id === id) {
+		      	nodes[i].activation = newAct;
+		    	break;
+		    }
+		  }
+	}
+	
+	function linkNodes(from, to, linkStrength){
+		for (var i = 0; i < links.length; i++) {
+		    if ((links[i].target.id == to && links[i].source.id == from) || (links[i].target.id == from && links[i].source.id == to))  {
+		      	return;
+		    }
+		  }
+		var fromNode = findById(from);
+		var toNode = findById(to);
+		links.push({source: fromNode, target: toNode, strength: linkStrength});
+	}
+	
+	/*
+	var a = {id: "a", activation: 0.5}, b = {id: "b", activation: 0.75}, c = {id: "c", activation: 0.25};
+	nodes.push(a, b, c);
+	links.push({source: a, target: b, strength: 10}, {source: a, target: c, strength: 20}, {source: b, target: c, strength: 5});
+	start();
+	setTimeout(function(){
+		removeById("c");
+		start();
+	}, 3000);
+	setTimeout(function(){
+		changeActivationById("a", 1);
+		start();
+	}, 6000); */
+</script>
