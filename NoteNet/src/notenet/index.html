@@ -39,31 +39,6 @@
 	var node = svg.selectAll(".node"),
 	link = svg.selectAll(".link");
 	
-	/*
-	//1. Add three nodes and three links.
-	setTimeout(function() {
-	var a = {id: "a"}, b = {id: "b"}, c = {id: "c"};
-	nodes.push(a, b, c);
-	links.push({source: a, target: b}, {source: a, target: c}, {source: b, target: c});
-	start();
-	}, 0);
-	
-	//2. Remove node B and associated links.
-	setTimeout(function() {
-	nodes.splice(1, 1); // remove b
-	links.shift(); // remove a-b
-	links.pop(); // remove b-c
-	start();
-	}, 3000);
-	
-	//Add node B back.
-	setTimeout(function() {
-	var a = nodes[0], b = {id: "b"}, c = nodes[1];
-	nodes.push(b);
-	links.push({source: a, target: b}, {source: b, target: c});
-	start();
-	}, 6000);
-	*/
 	function start() {
 	link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; });
 	link.enter().insert("line", ".node").attr("class", "link");
@@ -131,18 +106,4 @@
 		var toNode = findById(to);
 		links.push({source: fromNode, target: toNode, strength: linkStrength});
 	}
-	
-	/*
-	var a = {id: "a", activation: 0.5}, b = {id: "b", activation: 0.75}, c = {id: "c", activation: 0.25};
-	nodes.push(a, b, c);
-	links.push({source: a, target: b, strength: 10}, {source: a, target: c, strength: 20}, {source: b, target: c, strength: 5});
-	start();
-	setTimeout(function(){
-		removeById("c");
-		start();
-	}, 3000);
-	setTimeout(function(){
-		changeActivationById("a", 1);
-		start();
-	}, 6000); */
 </script>
