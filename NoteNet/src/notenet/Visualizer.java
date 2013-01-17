@@ -27,8 +27,7 @@ public class Visualizer extends Application{
         // create the scene
         stage.setTitle("Web View");
         scene = new Scene(view,750,500, Color.web("#666970"));
-        stage.setScene(scene);
-        //scene.getStylesheets().add("webviewsample/BrowserToolbar.css");     
+        stage.setScene(scene);   
         System.out.println("Showing stage");
         stage.show();
         
