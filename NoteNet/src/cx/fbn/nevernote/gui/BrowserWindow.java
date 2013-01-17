@@ -193,8 +193,6 @@ public class BrowserWindow extends QWidget {
 	//NoteNet view areas
 	private final ContentView linksViewer;
 	private final ContentView activationViewer;
-	private final QWebView visualizationViewer;
-	private final boolean visualize = true;
 
 	public final QPushButton undoButton;
 	public final QAction	undoAction;
@@ -441,12 +439,7 @@ public class BrowserWindow extends QWidget {
 		activationFont.setFixedPitch(true);
 		activationFont.setPointSize(10);
 		activationViewer.setFont(activationFont);
-		
-		//Setup the visualization viewer
-		visualizationViewer = new QWebView(this);
-		visualizationViewer.load(new QUrl(notenet.Visualizer.class.getResource("index.html").toExternalForm()));
-		visualizationViewer.setVisible(visualize);
-		
+				
 		//Setup the source editor
 		sourceEdit = new QTextEdit(this);
 		sourceEdit.setVisible(false);
@@ -634,11 +627,6 @@ public class BrowserWindow extends QWidget {
 		editSplitter.addWidget(sourceEdit);
 		editSplitter.addWidget(linksViewer);
 		editSplitter.addWidget(activationViewer);
-		
-		QSplitter visualizeSplitter = new QSplitter(this);
-		visualizeSplitter.setOrientation(Qt.Orientation.Horizontal);
-		visualizeSplitter.addWidget(sourceEdit);
-		visualizeSplitter.addWidget(visualizationViewer);
 		
 
 		

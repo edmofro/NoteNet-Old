@@ -1,22 +1,22 @@
 package notenet;
 
-import com.trolltech.qt.gui.QWidget;
+import com.trolltech.qt.core.QUrl;
+import com.trolltech.qt.webkit.QWebView;
 
 
 
 
-public class VisualizerWindow extends QWidget {
+public class VisualizerWindow extends QWebView {
 	 
 	    public VisualizerWindow(final Visualizer visualizer) {
-	        
-	 
+	        this.load(new QUrl(VisualizerWindow.class.getResource("index.html").toExternalForm()));	 
 	    }
 	   
 	    public void executeScript(String script){
 			script = script.replace('-', 'x');
 			script += "start();";
 	    	System.out.println("Executing script: " + script);
-	    	webEngine.executeScript(script);
+	    	//webEngine.executeScript(script);
 	    }
 	    
 	    public void remove(ActivationNode node) {
