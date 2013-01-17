@@ -553,6 +553,9 @@ public class NeverNote extends QMainWindow{
         readOnlyCache = new HashMap<String, Boolean>();
         inkNoteCache = new HashMap<String, Boolean>();
         browserWindow = new BrowserWindow(conn);
+        
+        //Visualizer window init
+        visualizerWindow = new VisualizerWindow();
 
         mainLeftRightSplitter.addWidget(leftSplitter1);
         mainLeftRightSplitter.addWidget(browserIndexSplitter);
@@ -564,7 +567,7 @@ public class NeverNote extends QMainWindow{
         } else {
         	mainLeftRightSplitter.addWidget(noteTableView);
         	mainLeftRightSplitter.addWidget(browserWindow);
-        	browserIndexSplitter.addWidget(visualizerWindow);  
+        	mainLeftRightSplitter.addWidget(visualizerWindow);  
         }
     	
     	// Setup the thumbnail viewer
@@ -768,9 +771,11 @@ public class NeverNote extends QMainWindow{
         if (Global.getListView() == Global.View_List_Wide) {
         	browserIndexSplitter.addWidget(noteTableView);
         	browserIndexSplitter.addWidget(browserWindow); 
+        	browserIndexSplitter.addWidget(visualizerWindow); 
         } else {
         	mainLeftRightSplitter.addWidget(noteTableView);
         	mainLeftRightSplitter.addWidget(browserWindow); 
+        	mainLeftRightSplitter.addWidget(visualizerWindow); 
         }
         
 		messageTimer = new QTimer();
@@ -4224,6 +4229,8 @@ public class NeverNote extends QMainWindow{
     	
     	mainLeftRightSplitter.addWidget(noteTableView);
     	mainLeftRightSplitter.addWidget(browserWindow);
+    	mainLeftRightSplitter.addWidget(visualizerWindow);
+    	
     	restoreWindowState(false);
     	noteTableView.repositionColumns();
     	noteTableView.resizeColumnWidths();
@@ -4263,6 +4270,7 @@ public class NeverNote extends QMainWindow{
     	browserIndexSplitter.setVisible(true);
         browserIndexSplitter.addWidget(noteTableView);
         browserIndexSplitter.addWidget(browserWindow);
+        browserIndexSplitter.addWidget(visualizerWindow);
         restoreWindowState(false);
     	noteTableView.repositionColumns();
     	noteTableView.resizeColumnWidths();

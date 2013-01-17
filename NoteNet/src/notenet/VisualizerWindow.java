@@ -8,7 +8,7 @@ import com.trolltech.qt.webkit.QWebView;
 
 public class VisualizerWindow extends QWebView {
 	 
-	    public VisualizerWindow(final Visualizer visualizer) {
+	    public VisualizerWindow() {
 	        this.load(new QUrl(VisualizerWindow.class.getResource("index.html").toExternalForm()));	 
 	    }
 	   
