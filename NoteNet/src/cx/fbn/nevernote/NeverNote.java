@@ -228,6 +228,8 @@ public class NeverNote extends QMainWindow{
     TrashTreeWidget			trashTree;					// Trashcan
     TableView	 			noteTableView;				// 	List of notes (the widget).
 
+    public VisualizerWindow	visualizerWindow;			//Window containing visualization of activation network
+    
     public BrowserWindow	browserWindow;				// Window containing browser & labels
     public QToolBar 		toolBar;					// The tool bar under the menu
     QComboBox				searchField;				// search filter bar on the toolbar;
@@ -557,10 +559,12 @@ public class NeverNote extends QMainWindow{
         
         if (Global.getListView() == Global.View_List_Wide) {
         	browserIndexSplitter.addWidget(noteTableView);
-        	browserIndexSplitter.addWidget(browserWindow); 
+        	browserIndexSplitter.addWidget(browserWindow);
+        	browserIndexSplitter.addWidget(visualizerWindow);  
         } else {
         	mainLeftRightSplitter.addWidget(noteTableView);
-        	mainLeftRightSplitter.addWidget(browserWindow); 
+        	mainLeftRightSplitter.addWidget(browserWindow);
+        	browserIndexSplitter.addWidget(visualizerWindow);  
         }
     	
     	// Setup the thumbnail viewer

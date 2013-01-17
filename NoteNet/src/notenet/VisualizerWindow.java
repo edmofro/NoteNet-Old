@@ -1,63 +1,17 @@
 package notenet;
 
-
-import javafx.geometry.HPos;
-import javafx.geometry.VPos;
-import javafx.scene.Node;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.concurrent.Worker.State;
+import com.trolltech.qt.gui.QWidget;
 
 
-public class VisualizerWindow extends Region {
+
+
+public class VisualizerWindow extends QWidget {
 	 
-	    final WebView view = new WebView();
-	    final WebEngine webEngine = view.getEngine();
-	     
 	    public VisualizerWindow(final Visualizer visualizer) {
-	        //apply the styles
-	        getStyleClass().add("browser");
-	        //call the rest of app when page is rendered
-	        webEngine.getLoadWorker().stateProperty().addListener(
-	                new ChangeListener<State>() {
-	                    @Override
-	                    public void changed(ObservableValue ov, State oldState, State newState) {
-	                        if (newState == State.SUCCEEDED) {
-	                            visualizer.runApp();
-	                        }
-	                    }
-	                });
-	        // load the web page
-	        webEngine.load(VisualizerWindow.class.getResource("index.html").toExternalForm());
-	        //add the web view to the scene
-	        getChildren().add(view);
+	        
 	 
 	    }
-	    private Node createSpacer() {
-	        Region spacer = new Region();
-	        HBox.setHgrow(spacer, Priority.ALWAYS);
-	        return spacer;
-	    }
-	 
-	    @Override protected void layoutChildren() {
-	        double w = getWidth();
-	        double h = getHeight();
-	        layoutInArea(view,0,0,w,h,0, HPos.CENTER, VPos.CENTER);
-	    }
-	 
-	    @Override protected double computePrefWidth(double height) {
-	        return 750;
-	    }
-	 
-	    @Override protected double computePrefHeight(double width) {
-	        return 500;
-	    }
-	    
+	   
 	    public void executeScript(String script){
 			script = script.replace('-', 'x');
 			script += "start();";
