@@ -30,8 +30,6 @@ public class Visualizer extends Application{
         stage.setScene(scene);   
         System.out.println("Showing stage");
         stage.show();
-        
-        //add(new ActivationNode("aaa"));
     }
     
     public void visualize(){
