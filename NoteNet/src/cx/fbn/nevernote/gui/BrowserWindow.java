@@ -174,8 +174,6 @@ public class BrowserWindow extends QWidget {
 	private final String iconPath;
 	public final ContentView browser;
 	private final QTextEdit sourceEdit;
-	private final ContentView linksViewer;
-	private final ContentView activationViewer;
 	private String sourceEditHeader;
 	Highlighter syntaxHighlighter;
 	private List<Tag> allTags;
@@ -190,7 +188,12 @@ public class BrowserWindow extends QWidget {
 	private final DatabaseConnection conn;
 	private final QCalendarWidget createdCalendarWidget;
 	private final QCalendarWidget alteredCalendarWidget;
-	private final QCalendarWidget subjectCalendarWidget;
+	private final QCalendarWidget subjectCalendarWidget;	
+
+	//NoteNet view areas
+	private final ContentView linksViewer;
+	private final ContentView activationViewer;
+	private final QWebView visualizationViewer;
 
 	public final QPushButton undoButton;
 	public final QAction	undoAction;
