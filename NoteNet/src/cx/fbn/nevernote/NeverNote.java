@@ -228,7 +228,8 @@ public class NeverNote extends QMainWindow{
     TrashTreeWidget			trashTree;					// Trashcan
     TableView	 			noteTableView;				// 	List of notes (the widget).
 
-    public VisualizerWindow	visualizerWindow;			//Window containing visualization of activation network
+    public VisualizerWindow	visualizerWindow;			//Window containing visualization of activation network 
+    boolean					visualize = true;			// Display visualization of activation network?
     
     public BrowserWindow	browserWindow;				// Window containing browser & labels
     public QToolBar 		toolBar;					// The tool bar under the menu
@@ -250,6 +251,7 @@ public class NeverNote extends QMainWindow{
     boolean					noteDirty;					// Has the note been changed?
     boolean 				inkNote;                   // if this is an ink note, it is read only
     boolean					readOnly;					// Is this note read-only?
+   
 	
   
     ListManager				listManager;					// DB runnable task
@@ -556,17 +558,19 @@ public class NeverNote extends QMainWindow{
         
         //Visualizer window init
         visualizerWindow = new VisualizerWindow();
+        visualizerWindow.setVisible(visualize);
+        visualizerWindow.show();
 
         mainLeftRightSplitter.addWidget(leftSplitter1);
         mainLeftRightSplitter.addWidget(browserIndexSplitter);
         
         if (Global.getListView() == Global.View_List_Wide) {
         	browserIndexSplitter.addWidget(noteTableView);
-        	browserIndexSplitter.addWidget(browserWindow);
+//        	browserIndexSplitter.addWidget(browserWindow);
         	browserIndexSplitter.addWidget(visualizerWindow);  
         } else {
         	mainLeftRightSplitter.addWidget(noteTableView);
-        	mainLeftRightSplitter.addWidget(browserWindow);
+//        	mainLeftRightSplitter.addWidget(browserWindow);
         	mainLeftRightSplitter.addWidget(visualizerWindow);  
         }
     	
@@ -769,12 +773,14 @@ public class NeverNote extends QMainWindow{
     	menuBar.wideListView.blockSignals(false);
 
         if (Global.getListView() == Global.View_List_Wide) {
+        	System.out.println("one");
         	browserIndexSplitter.addWidget(noteTableView);
-        	browserIndexSplitter.addWidget(browserWindow); 
+        	//browserIndexSplitter.addWidget(browserWindow); 
         	browserIndexSplitter.addWidget(visualizerWindow); 
         } else {
+        	System.out.println("one");
         	mainLeftRightSplitter.addWidget(noteTableView);
-        	mainLeftRightSplitter.addWidget(browserWindow); 
+        	//mainLeftRightSplitter.addWidget(browserWindow); 
         	mainLeftRightSplitter.addWidget(visualizerWindow); 
         }
         
@@ -4228,7 +4234,7 @@ public class NeverNote extends QMainWindow{
     	menuBar.narrowListView.blockSignals(false);
     	
     	mainLeftRightSplitter.addWidget(noteTableView);
-    	mainLeftRightSplitter.addWidget(browserWindow);
+//    	mainLeftRightSplitter.addWidget(browserWindow);
     	mainLeftRightSplitter.addWidget(visualizerWindow);
     	
     	restoreWindowState(false);
@@ -4269,7 +4275,7 @@ public class NeverNote extends QMainWindow{
     	menuBar.narrowListView.blockSignals(false);
     	browserIndexSplitter.setVisible(true);
         browserIndexSplitter.addWidget(noteTableView);
-        browserIndexSplitter.addWidget(browserWindow);
+//        browserIndexSplitter.addWidget(browserWindow);
         browserIndexSplitter.addWidget(visualizerWindow);
         restoreWindowState(false);
     	noteTableView.repositionColumns();

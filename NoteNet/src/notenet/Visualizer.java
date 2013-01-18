@@ -39,7 +39,9 @@ public class Visualizer extends Application{
 	}
     		
 	public static void main(String... args) {
-		new Visualizer().visualize();
+		System.out.println(VisualizerWindow.class.getResource("index.html").toExternalForm());
+
+		System.out.println(VisualizerWindow.class.getResource("index.html"));
 	}
 
 	public void runApp() {
