@@ -560,6 +560,7 @@ public class NeverNote extends QMainWindow{
         visualizerWindow = new VisualizerWindow();
         visualizerWindow.setVisible(visualize);
         visualizerWindow.show();
+        Global.view = visualizerWindow;
 
         mainLeftRightSplitter.addWidget(leftSplitter1);
         mainLeftRightSplitter.addWidget(browserIndexSplitter);
@@ -773,12 +774,10 @@ public class NeverNote extends QMainWindow{
     	menuBar.wideListView.blockSignals(false);
 
         if (Global.getListView() == Global.View_List_Wide) {
-        	System.out.println("one");
         	browserIndexSplitter.addWidget(noteTableView);
         	//browserIndexSplitter.addWidget(browserWindow); 
         	browserIndexSplitter.addWidget(visualizerWindow); 
         } else {
-        	System.out.println("one");
         	mainLeftRightSplitter.addWidget(noteTableView);
         	//mainLeftRightSplitter.addWidget(browserWindow); 
         	mainLeftRightSplitter.addWidget(visualizerWindow); 

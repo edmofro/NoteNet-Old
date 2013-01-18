@@ -47,7 +47,8 @@
 	node = node.data(force.nodes(), function(d) { return d.id;});
 	node.enter().append("circle")
 	.attr("class", function(d) { return "node " + d.id; });
-	node.attr("r", function(d) { return d.activation * 10 + 1});
+	node.attr("r", function(d) { return d.activation * 10 + 1})
+		.attr("color", function);
 	node.exit().remove();
 	
 	force.start();
@@ -106,4 +107,5 @@
 		var toNode = findById(to);
 		links.push({source: fromNode, target: toNode, strength: linkStrength});
 	}
+	
 </script>

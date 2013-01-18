@@ -11,13 +11,14 @@ public class VisualizerWindow extends QWebView {
 	 
 	    public VisualizerWindow() {
 	    	super();
-	        this.load(QUrl.fromLocalFile("C:/Users/Edwin/git/NoteNet/NoteNet/bin/notenet/index.html")); // new QUrl("C:/Users/Edwin/git/NoteNet/NoteNet/bin/notenet/index.html")); //VisualizerWindow.class.getResource("index.html").toExternalForm()));	 
+	        this.load(new QUrl(VisualizerWindow.class.getResource("index.html").toExternalForm()));	 
 	    }
 	   
 	    public void executeScript(String script){
 			script = script.replace('-', 'x');
 			script += "start();";
 	    	System.out.println("Executing script: " + script);
+	    	this.page().mainFrame().evaluateJavaScript(script);
 	    	//webEngine.executeScript(script);
 	    }
 	    
