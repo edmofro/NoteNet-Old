@@ -48,7 +48,7 @@
 	node.enter().append("circle")
 	.attr("class", function(d) { return "node " + d.id; });
 	node.attr("r", function(d) { return d.activation * 10 + 1})
-// 		.attr("color", function(d) { return "hsl(" + d.activation * 360 + ",100%,50%)";});
+		.attr("color", function(d) { return "hsl(" + d.activation * 360 + ",100%,50%)";});
 	node.exit().remove();
 	
 	force.start();
@@ -107,5 +107,12 @@
 		var toNode = findById(to);
 		links.push({source: fromNode, target: toNode, strength: linkStrength});
 	}
+	
+	setTimeout(function() {
+		var a = {id: "a", activation: 0.5}, b = {id: "b", activation: 0.4}, c = {id: "c", activation: 0.75};
+		nodes.push(a, b, c);
+		links.push({source: a, target: b, strength: 0.4}, {source: a, target: c, strength: 0.4}, {source: b, target: c, strength: 0.4});
+		start();
+		}, 0);
 	
 </script>
