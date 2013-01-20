@@ -48,7 +48,7 @@
 	node.enter().append("circle")
 	.attr("class", function(d) { return "node " + d.id; });
 	node.attr("r", function(d) { return d.activation * 10 + 1})
-		.attr("color", function);
+// 		.attr("color", function(d) { return "hsl(" + d.activation * 360 + ",100%,50%)";});
 	node.exit().remove();
 	
 	force.start();
