@@ -19,7 +19,9 @@
 	var width = 960,
 	height = 500;
 	
-	var color = d3.scale.category10();
+	var color = d3.scale.linear()
+					.domain([0,1])
+					.range(["red","green"]);
 	
 	var nodes = [],
 	links = [];
@@ -40,15 +42,26 @@
 	link = svg.selectAll(".link");
 	
 	function start() {
+		
+	//link stuff
 	link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; });
 	link.enter().insert("line", ".node").attr("class", "link");
 	link.exit().remove();
 	
+	
+	//node stuff
 	node = node.data(force.nodes(), function(d) { return d.id;});
+	
+	//add new nodes
 	node.enter().append("circle")
-	.attr("class", function(d) { return "node " + d.id; });
+		.attr("class", function(d) { return "node " + d.id; })
+		.append("title")
+			.text(function(d) { return d.name; });
+	
+	//update activation of all of them
 	node.attr("r", function(d) { return d.activation * 10 + 1})
-		.attr("color", function(d) { return "hsl(" + d.activation * 360 + ",100%,50%)";});
+		.style("fill", function(d) { return color(1);}) //d.activation);})
+		.style("opacity", function(d) {return d.activation;});
 	node.exit().remove();
 	
 	force.start();
@@ -109,7 +122,7 @@
 	}
 	
 	setTimeout(function() {
-		var a = {id: "a", activation: 0.5}, b = {id: "b", activation: 0.4}, c = {id: "c", activation: 0.75};
+		var a = {id: "a", name: "a", activation: 0.5}, b = {id: "b", name: "the middle one", activation: 0.4}, c = {id: "c", name: "c", activation: 0.75};
 		nodes.push(a, b, c);
 		links.push({source: a, target: b, strength: 0.4}, {source: a, target: c, strength: 0.4}, {source: b, target: c, strength: 0.4});
 		start();

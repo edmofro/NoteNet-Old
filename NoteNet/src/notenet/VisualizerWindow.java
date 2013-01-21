@@ -46,7 +46,7 @@ public class VisualizerWindow extends QWebView {
 
 		public void add(ActivationNode act, String linkNode, double linkStrength) {
 			String script = 
-					"var n" + act.getNoteGuid() + " = {id: \'"+ act.getNoteGuid() +"\', activation: " + act.getActivation() + " };\n" +
+					"var n" + act.getNoteGuid() + " = {id: \'"+ act.getNoteGuid() + "\', name: \'" + act.getName() + "\', activation: " + act.getActivation() + " };\n" +
 				    "nodes.push(n" + act.getNoteGuid() + ");\n";
 			if(linkNode!=null){
 				script +=
