@@ -12,13 +12,14 @@ public class VisualizerWindow extends QWebView {
 	    public VisualizerWindow() {
 	    	super();
 	        this.load(new QUrl(VisualizerWindow.class.getResource("index.html").toExternalForm()));	 
+//	        this.load(new QUrl("http://xkcd.com"));
 	    }
 	   
 	    public void executeScript(String script){
 			script = script.replace('-', 'x');
 			script += "start();";
 	    	System.out.println("Executing script: " + script);
-	    	this.page().mainFrame().evaluateJavaScript(script);
+	    	//this.page().mainFrame().evaluateJavaScript(script);
 	    	//webEngine.executeScript(script);
 	    }
 	    
