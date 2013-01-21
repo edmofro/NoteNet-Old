@@ -5171,7 +5171,7 @@ public class NeverNote extends QMainWindow{
 		Global.linksTable.clearLinks();
 		List<Note> notes = conn.getNoteTable().getAllNotes();	//getNotesByNotebook(selectedNotebookGUIDs.get(0));
 		for(int i = 0; i < notes.size(); i++){
-			Global.linksTable.addNote(notes.get(i).getGuid());			
+			Global.linksTable.addNote(notes.get(i).getGuid(), notes.get(i).getTitle());			
 		}
 		Global.linksTable.setup = true;
 	}

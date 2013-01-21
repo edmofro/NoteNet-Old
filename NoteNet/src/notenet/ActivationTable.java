@@ -42,7 +42,8 @@ public class ActivationTable{
 		heap = new ArrayList<ActivationNode>(bound+1);
 	}
 	
-	public void activate(String guid, String name, double actChange, String from, double linkStrength){	
+	public void activate(String guid, double actChange, String from, double linkStrength){
+		String name = Global.linksTable.getName(guid);
 		if(guid==null) return;
 		ActivationNode act; 
 		int actIndex = heap.indexOf(new ActivationNode(guid, name)); 

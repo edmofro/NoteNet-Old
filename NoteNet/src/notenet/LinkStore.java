@@ -33,12 +33,13 @@ public class LinkStore {
 		registerShutdownHook( graphDb );
 	}
 	
-	public void addNote(String uid){		
+	public void addNote(String uid, String name){		
 		Transaction tx = graphDb.beginTx();
 		try
 		{
 			Node newNode = graphDb.createNode();
 			newNode.setProperty( "uid", uid );
+			newNode.setProperty("name", name);
 			nodeIndex.add( newNode, "uid", uid );
 		    tx.success();
 		}
@@ -115,6 +116,10 @@ public class LinkStore {
 			System.out.println("Null pointer: " + e.getLocalizedMessage());
 		}
 		return ret;
+	}
+	
+	public String getName(String uid){
+		return (String) nodeIndex.get("uid", uid).getSingle().getProperty("name");
 	}
 	
 
