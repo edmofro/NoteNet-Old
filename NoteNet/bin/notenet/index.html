@@ -2,10 +2,10 @@
 <meta charset="utf-8">
 <style>
 
-.node {
-  stroke: #fff;
-  stroke-width: 1.5px;
-}
+ .node { 
+   stroke: #fff; 
+   stroke-width: 1.5px; 
+ } 
 
 .link {
   stroke: #999;
@@ -47,6 +47,9 @@
 	link = svg.selectAll(".link"),
 	nodeCircle = svg.selectAll(".nodeCircle");
 	
+	node.on("mouseover", mouseover)
+		.on("mouseout", mouseout);
+	
 	function start() {
 		
 	//link stuff
@@ -61,14 +64,18 @@
 // 	add new nodes
 	var nodeAnchor = node.enter().append("g");
 	
-	nodeAnchor.append("text")
-			.attr("class", "nodeText")
-			.text( function(d) { return d.id; });
 	
 	nodeCircle = nodeAnchor.append("circle")
 			.attr("class", "nodeCircle");
 // 		.attr("class", function(d) { return "node " + d.id; })
 // 			.text(function(d) { return d.name; });
+
+	
+	nodeAnchor.append("text")
+			.attr("class", "nodeText")
+			.attr("x", 10)
+			.attr("y", 2)
+			.text( function(d) { return d.id; });
 	
 	//update activation of all of them
 
@@ -90,6 +97,10 @@
 	  .attr("y2", function(d) { return d.target.y; });
 	
 	
+	}
+	
+	function mouseover() {
+		
 	}
 	
 	function findById(id) {
