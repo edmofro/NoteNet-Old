@@ -5,15 +5,18 @@ public class ActivationNode implements Comparable<ActivationNode>{
 	private String noteGuid;
 	private double activation; // between 0 and 1
 	private int position;
+	private String name;
 	
-	public ActivationNode(String guid, double act){
+	public ActivationNode(String guid, String name, double act){
 		noteGuid = guid;
 		activation = act;
+		this.name = name;
 	}
 
 	// Abstract activation
 	public ActivationNode(String guid) {
 		noteGuid = guid;
+		this.name = "generic";
 		activation = 0;
 	}
 
@@ -65,6 +68,10 @@ public class ActivationNode implements Comparable<ActivationNode>{
 	public void fade(double proportionFade) {
 		activation*=(1-proportionFade);
 		
+	}
+
+	public String getName() {
+		return name;
 	}
 
 	

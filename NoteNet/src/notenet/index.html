@@ -2,14 +2,19 @@
 <meta charset="utf-8">
 <style>
 
-.node {
-  stroke: #fff;
-  stroke-width: 1.5px;
-}
+ .node { 
+   stroke: #fff; 
+   stroke-width: 1.5px; 
+ } 
 
 .link {
   stroke: #999;
   stroke-opacity: .6;
+}
+
+.node text {
+  pointer-events: none;
+  font: 10px sans-serif;
 }
 
 </style>
@@ -19,7 +24,9 @@
 	var width = 960,
 	height = 500;
 	
-	var color = d3.scale.category10();
+	var color = d3.scale.linear()
+					.domain([0,1])
+					.range(["red","green"]);
 	
 	var nodes = [],
 	links = [];
@@ -30,37 +37,59 @@
 	.charge(-400)
 	.linkDistance(function(d){return d.strength * 10})
 	.size([width, height])
-	.on("tick", tick);
+ 	.on("tick", tick);
 	
 	var svg = d3.select("body").append("svg")
 	.attr("width", width)
 	.attr("height", height);
 	
 	var node = svg.selectAll(".node"),
-	link = svg.selectAll(".link");
+	link = svg.selectAll(".link"),
+	nodeCircle = svg.selectAll(".nodeCircle");
 	
 	function start() {
+		
+	//link stuff
 	link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; });
 	link.enter().insert("line", ".node").attr("class", "link");
 	link.exit().remove();
 	
-	node = node.data(force.nodes(), function(d) { return d.id;});
-	node.enter().append("circle")
-	.attr("class", function(d) { return "node " + d.id; });
-	node.attr("r", function(d) { return d.activation * 10 + 1});
-	node.exit().remove();
 	
+	//node stuff
+	node = node.data(force.nodes(), function(d) { return d.id;});
+	
+// 	add new nodes
+	var nodeAnchor = node.enter().append("g");
+	
+	nodeAnchor.append("text")
+			.attr("class", "nodeText")
+			.text( function(d) { return d.id; });
+	
+	nodeCircle = nodeAnchor.append("circle")
+			.attr("class", "nodeCircle");
+// 		.attr("class", function(d) { return "node " + d.id; })
+// 			.text(function(d) { return d.name; });
+	
+	//update activation of all of them
+
+	nodeCircle.attr("r", function(d) { return d.activation * 10 + 1})
+		.style("fill", function(d) { return color(1);}) //d.activation);})
+		.style("opacity", function(d) {return d.activation;});
+	node.exit().remove();
+
 	force.start();
 	}
 	
 	function tick() {
-	node.attr("cx", function(d) { return d.x; })
-	  .attr("cy", function(d) { return d.y; })
+		
+		node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 	
 	link.attr("x1", function(d) { return d.source.x; })
 	  .attr("y1", function(d) { return d.source.y; })
 	  .attr("x2", function(d) { return d.target.x; })
 	  .attr("y2", function(d) { return d.target.y; });
+	
+	
 	}
 	
 	function findById(id) {
@@ -106,4 +135,12 @@
 		var toNode = findById(to);
 		links.push({source: fromNode, target: toNode, strength: linkStrength});
 	}
+	
+	setTimeout(function() {
+		var a = {id: "a", name: "a", activation: 0.5}, b = {id: "b", name: "the middle one", activation: 0.4}, c = {id: "c", name: "c", activation: 0.75};
+		nodes.push(a, b, c);
+		links.push({source: a, target: b, strength: 0.4}, {source: a, target: c, strength: 0.4}, {source: b, target: c, strength: 0.4});
+		start();
+		}, 0);
+	
 </script>

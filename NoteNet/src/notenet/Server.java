@@ -20,7 +20,8 @@ public class Server {
 		final MyServ srv = new MyServ();
  		// setting aliases, for an optional file servlet
                 Acme.Serve.Serve.PathTreeDictionary aliases = new Acme.Serve.Serve.PathTreeDictionary();
-                aliases.put("/*", new java.io.File("C:\\Users\\Edwin\\workspace\\NoteNet\\src\\notenet"));
+                System.out.println(Server.class.getResource("index.html").getFile());
+                aliases.put("/*", new java.io.File(Server.class.getResource("index.html").getFile()));
 		//  note cast name will depend on the class name, since it is anonymous class
                srv.setMappingTable(aliases);
 		// setting properties for the server, and exchangeable Acceptors

@@ -42,7 +42,7 @@ public class ActivationTable{
 		heap = new ArrayList<ActivationNode>(bound+1);
 	}
 	
-	public void activate(String guid, double actChange, String from, double linkStrength){	
+	public void activate(String guid, double actChange, String from, double linkStrength){
 		if(guid==null) return;
 		ActivationNode act; 
 		int actIndex = heap.indexOf(new ActivationNode(guid)); 
@@ -53,7 +53,10 @@ public class ActivationTable{
 			if(Global.view != null) Global.view.boost(act, from, linkStrength);
 		}
 		else{
-			act = new ActivationNode(guid, actChange);
+			String name = "";
+			if(Global.linksTable!=null)
+				name = Global.linksTable.getName(guid);
+			act = new ActivationNode(guid, name, actChange);
 			insert(act);
 			if(Global.view != null) Global.view.add(act, from, linkStrength);
 			if(size>=bound){

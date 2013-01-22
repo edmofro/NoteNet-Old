@@ -228,6 +228,9 @@ public class NeverNote extends QMainWindow{
     TrashTreeWidget			trashTree;					// Trashcan
     TableView	 			noteTableView;				// 	List of notes (the widget).
 
+    public VisualizerWindow	visualizerWindow;			//Window containing visualization of activation network 
+    boolean					visualize = true;			// Display visualization of activation network?
+    
     public BrowserWindow	browserWindow;				// Window containing browser & labels
     public QToolBar 		toolBar;					// The tool bar under the menu
     QComboBox				searchField;				// search filter bar on the toolbar;
@@ -248,6 +251,7 @@ public class NeverNote extends QMainWindow{
     boolean					noteDirty;					// Has the note been changed?
     boolean 				inkNote;                   // if this is an ink note, it is read only
     boolean					readOnly;					// Is this note read-only?
+   
 	
   
     ListManager				listManager;					// DB runnable task
@@ -551,16 +555,24 @@ public class NeverNote extends QMainWindow{
         readOnlyCache = new HashMap<String, Boolean>();
         inkNoteCache = new HashMap<String, Boolean>();
         browserWindow = new BrowserWindow(conn);
+        
+        //Visualizer window init
+        visualizerWindow = new VisualizerWindow();
+        visualizerWindow.setVisible(visualize);
+        visualizerWindow.show();
+        Global.view = visualizerWindow;
 
         mainLeftRightSplitter.addWidget(leftSplitter1);
         mainLeftRightSplitter.addWidget(browserIndexSplitter);
         
         if (Global.getListView() == Global.View_List_Wide) {
         	browserIndexSplitter.addWidget(noteTableView);
-        	browserIndexSplitter.addWidget(browserWindow); 
+//        	browserIndexSplitter.addWidget(browserWindow);
+        	browserIndexSplitter.addWidget(visualizerWindow);  
         } else {
         	mainLeftRightSplitter.addWidget(noteTableView);
-        	mainLeftRightSplitter.addWidget(browserWindow); 
+//        	mainLeftRightSplitter.addWidget(browserWindow);
+        	mainLeftRightSplitter.addWidget(visualizerWindow);  
         }
     	
     	// Setup the thumbnail viewer
@@ -763,10 +775,12 @@ public class NeverNote extends QMainWindow{
 
         if (Global.getListView() == Global.View_List_Wide) {
         	browserIndexSplitter.addWidget(noteTableView);
-        	browserIndexSplitter.addWidget(browserWindow); 
+        	//browserIndexSplitter.addWidget(browserWindow); 
+        	browserIndexSplitter.addWidget(visualizerWindow); 
         } else {
         	mainLeftRightSplitter.addWidget(noteTableView);
-        	mainLeftRightSplitter.addWidget(browserWindow); 
+        	//mainLeftRightSplitter.addWidget(browserWindow); 
+        	mainLeftRightSplitter.addWidget(visualizerWindow); 
         }
         
 		messageTimer = new QTimer();
@@ -4219,7 +4233,9 @@ public class NeverNote extends QMainWindow{
     	menuBar.narrowListView.blockSignals(false);
     	
     	mainLeftRightSplitter.addWidget(noteTableView);
-    	mainLeftRightSplitter.addWidget(browserWindow);
+//    	mainLeftRightSplitter.addWidget(browserWindow);
+    	mainLeftRightSplitter.addWidget(visualizerWindow);
+    	
     	restoreWindowState(false);
     	noteTableView.repositionColumns();
     	noteTableView.resizeColumnWidths();
@@ -4258,7 +4274,8 @@ public class NeverNote extends QMainWindow{
     	menuBar.narrowListView.blockSignals(false);
     	browserIndexSplitter.setVisible(true);
         browserIndexSplitter.addWidget(noteTableView);
-        browserIndexSplitter.addWidget(browserWindow);
+//        browserIndexSplitter.addWidget(browserWindow);
+        browserIndexSplitter.addWidget(visualizerWindow);
         restoreWindowState(false);
     	noteTableView.repositionColumns();
     	noteTableView.resizeColumnWidths();
@@ -5154,7 +5171,7 @@ public class NeverNote extends QMainWindow{
 		Global.linksTable.clearLinks();
 		List<Note> notes = conn.getNoteTable().getAllNotes();	//getNotesByNotebook(selectedNotebookGUIDs.get(0));
 		for(int i = 0; i < notes.size(); i++){
-			Global.linksTable.addNote(notes.get(i).getGuid());			
+			Global.linksTable.addNote(notes.get(i).getGuid(), notes.get(i).getTitle());			
 		}
 		Global.linksTable.setup = true;
 	}
