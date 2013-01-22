@@ -43,10 +43,9 @@ public class ActivationTable{
 	}
 	
 	public void activate(String guid, double actChange, String from, double linkStrength){
-		String name = Global.linksTable.getName(guid);
 		if(guid==null) return;
 		ActivationNode act; 
-		int actIndex = heap.indexOf(new ActivationNode(guid, name)); 
+		int actIndex = heap.indexOf(new ActivationNode(guid)); 
 		if(actIndex>=0){
 			act  = (ActivationNode) remove(actIndex);
 			act.changeActivation(actChange);
@@ -54,6 +53,9 @@ public class ActivationTable{
 			if(Global.view != null) Global.view.boost(act, from, linkStrength);
 		}
 		else{
+			String name = "";
+			if(Global.linksTable!=null)
+				name = Global.linksTable.getName(guid);
 			act = new ActivationNode(guid, name, actChange);
 			insert(act);
 			if(Global.view != null) Global.view.add(act, from, linkStrength);

@@ -119,7 +119,11 @@ public class LinkStore {
 	}
 	
 	public String getName(String uid){
-		return (String) nodeIndex.get("uid", uid).getSingle().getProperty("name");
+		Node node = nodeIndex.get("uid", uid).getSingle();
+		if(node.hasProperty("name")){
+			return (String) node.getProperty("name");
+		}
+		else return "";
 	}
 	
 

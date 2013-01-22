@@ -14,9 +14,9 @@ public class ActivationNode implements Comparable<ActivationNode>{
 	}
 
 	// Abstract activation
-	public ActivationNode(String guid, String name) {
+	public ActivationNode(String guid) {
 		noteGuid = guid;
-		this.name = name;
+		this.name = "generic";
 		activation = 0;
 	}
 
