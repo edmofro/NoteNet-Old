@@ -100,7 +100,17 @@
 	}
 	
 	function mouseover() {
-		
+		var currentNode = d3.select(this);
+		var currentNodeText = currentNode.firstChild;
+		currentNodeText
+			.style("opacity", 1);
+	}
+	
+	function mouseout() {
+		var currentNode = d3.select(this);
+		var currentNodeText = currentNode.firstChild;
+		currentNodeText
+			.style("opacity", 0.25);
 	}
 	
 	function findById(id) {
