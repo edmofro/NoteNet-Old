@@ -17,10 +17,19 @@ public class VisualizerWindow extends QWebView {
 	   
 	    public void executeScript(String script){
 			script = script.replace('-', 'x');
-			script += "start();";
+//			script += "start();";
 	    	System.out.println("Executing script: " + script);
-	    	//this.page().mainFrame().evaluateJavaScript(script);
-	    	//webEngine.executeScript(script);
+	    	this.page().mainFrame().evaluateJavaScript(script);
+//	    	try {
+//				Thread.sleep(1000);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+	    }
+	    
+	    public void start(){
+	    	executeScript("start();");
 	    }
 	    
 	    public void remove(ActivationNode node) {

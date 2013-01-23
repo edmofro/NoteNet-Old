@@ -22,11 +22,12 @@
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script type="text/javascript">
 	var width = 960,
-	height = 500;
+	height = 500,
+	nodeRadius = 10;
 	
 	var color = d3.scale.linear()
 					.domain([0,1])
-					.range(["red","green"]);
+					.range(["white","green"]);
 	
 	var nodes = [],
 	links = [];
@@ -45,6 +46,7 @@
 	
 	var node = svg.selectAll(".node"),
 	link = svg.selectAll(".link"),
+	nodeText= svg.selectAll(".nodeText"),
 	nodeCircle = svg.selectAll(".nodeCircle");
 	
 	node.on("mouseover", mouseover)
@@ -73,18 +75,22 @@
 // 			.text(function(d) { return d.name; });
 
 	
-	nodeAnchor.append("text")
+	nodeText = nodeAnchor.append("text")
 			.attr("class", "nodeText")
 			.attr("x", 10)
 			.attr("y", 2)
 			.style("opacity", 0.25)
-			.text( function(d) { return d.id; });
+			.text( function(d) { return d.name; });
 	
 	//update activation of all of them
 
-	nodeCircle.attr("r", function(d) { return d.activation * 10 + 1})
-		.style("fill", function(d) { return color(1);}) //d.activation);})
-		.style("opacity", function(d) {return d.activation;});
+	nodeCircle.attr("r", function(d) { return d.activation * nodeRadius + 1})
+		.style("fill", function(d) { return color(d.activation);});
+// 		.style("opacity", function(d) {return d.activation;});
+	nodeText.attr("y", function(d) { return d.activation * nodeRadius * 0.5})
+			.attr("x", function(d) { return d.activation * nodeRadius + 2});
+	
+	//delete those that have faded below threshold
 	node.exit().remove();
 
 	force.start();
@@ -158,11 +164,21 @@
 		links.push({source: fromNode, target: toNode, strength: linkStrength});
 	}
 	
-	setTimeout(function() {
-		var a = {id: "a", name: "a", activation: 0.5}, b = {id: "b", name: "the middle one", activation: 0.4}, c = {id: "c", name: "c", activation: 0.75};
-		nodes.push(a, b, c);
-		links.push({source: a, target: b, strength: 0.4}, {source: a, target: c, strength: 0.4}, {source: b, target: c, strength: 0.4});
-		start();
-		}, 0);
+	//testing code
+	setTimeout(test,0);
+	
+	function test(){
+		setTimeout(function() {
+			console.log("Test one");
+			var a = {id: "a", name: "a", activation: 0.5}, b = {id: "b", name: "the middle one", activation: 0.4}, c = {id: "c", name: "c", activation: 0.75};
+			nodes.push(a, b, c);
+			links.push({source: a, target: b, strength: 0.4}, {source: a, target: c, strength: 0.4}, {source: b, target: c, strength: 0.4});
+			start();
+			}, 0);
+		setTimeout(function() {
+			console.log("Test two");
+			changeActivationById( 'a', 0.9);
+		}, 3000);
+	}
 	
 </script>

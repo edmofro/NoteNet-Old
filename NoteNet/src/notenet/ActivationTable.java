@@ -69,12 +69,14 @@ public class ActivationTable{
 				activate(e.getKey(), e.getValue()*actChange, guid, e.getValue());
 			}
 		}
+		if(from==null)
+			if(Global.view!=null)
+				Global.view.start();
 	}
 	
 	private ActivationNode remove(int actIndex) {
 		size--;
 		ActivationNode removed = heap.remove(actIndex);
-//		if(Global.view != null) Global.view.remove(removed);
 		return removed;
 	}
 
@@ -91,6 +93,7 @@ public class ActivationTable{
 			remove(heap.indexOf(act));
 			if(Global.view != null) Global.view.remove(act);
 		}
+//		if(Global.view!=null) Global.view.start();
 	}
 	
 	public List<ActivationNode> getActivatedNotes(){
