@@ -21,6 +21,8 @@
 <body>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script type="text/javascript">
+// 	setTimeout(test,1000); //uncomment for testing code to run
+
 	var width = 960,
 	height = 500,
 	nodeRadius = 10;
@@ -54,6 +56,13 @@
 	
 	function start() {
 		
+	//update activation of all of them
+	nodeCircle.attr("r", function(d) { return d.activation * nodeRadius + 1})
+		.style("fill", function(d) { return color(d.activation);});
+//  		.style("opacity", function(d) {return d.activation;});
+	nodeText.attr("y", function(d) { return d.activation * nodeRadius * 0.5})
+			.attr("x", function(d) { return d.activation * nodeRadius + 2});
+	
 	//link stuff
 	link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; });
 	link.enter().insert("line", ".node").attr("class", "link");
@@ -70,25 +79,21 @@
 	
 	
 	nodeCircle = nodeAnchor.append("circle")
-			.attr("class", "nodeCircle");
+			.attr("class", "nodeCircle")
+			.attr("r", function(d) { return d.activation * nodeRadius + 1})
+			.style("fill", function(d) { return color(d.activation);});
 // 		.attr("class", function(d) { return "node " + d.id; })
 // 			.text(function(d) { return d.name; });
 
 	
 	nodeText = nodeAnchor.append("text")
 			.attr("class", "nodeText")
-			.attr("x", 10)
-			.attr("y", 2)
+			.attr("y", function(d) { return d.activation * nodeRadius * 0.5})
+			.attr("x", function(d) { return d.activation * nodeRadius + 2})
 			.style("opacity", 0.25)
 			.text( function(d) { return d.name; });
 	
-	//update activation of all of them
-
-	nodeCircle.attr("r", function(d) { return d.activation * nodeRadius + 1})
-		.style("fill", function(d) { return color(d.activation);});
-// 		.style("opacity", function(d) {return d.activation;});
-	nodeText.attr("y", function(d) { return d.activation * nodeRadius * 0.5})
-			.attr("x", function(d) { return d.activation * nodeRadius + 2});
+	
 	
 	//delete those that have faded below threshold
 	node.exit().remove();
@@ -165,19 +170,22 @@
 	}
 	
 	//testing code
-	setTimeout(test,0);
 	
 	function test(){
 		setTimeout(function() {
 			console.log("Test one");
 			var a = {id: "a", name: "a", activation: 0.5}, b = {id: "b", name: "the middle one", activation: 0.4}, c = {id: "c", name: "c", activation: 0.75};
 			nodes.push(a, b, c);
-			links.push({source: a, target: b, strength: 0.4}, {source: a, target: c, strength: 0.4}, {source: b, target: c, strength: 0.4});
+			linkNodes('a', 'b', 0.4);
+			linkNodes('b', 'c', 0.4);
 			start();
 			}, 0);
 		setTimeout(function() {
 			console.log("Test two");
 			changeActivationById( 'a', 0.9);
+			linkNodes('a', 'c', 0.4);
+			start();
+			console.log(links);
 		}, 3000);
 	}
 	

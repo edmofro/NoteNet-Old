@@ -1,6 +1,11 @@
 package notenet;
 
+import org.bouncycastle.util.test.Test;
+
+import com.trolltech.qt.core.QEventLoop;
 import com.trolltech.qt.core.QUrl;
+import com.trolltech.qt.gui.QApplication;
+import com.trolltech.qt.gui.QMainWindow;
 import com.trolltech.qt.gui.QWidget;
 import com.trolltech.qt.webkit.QWebView;
 
@@ -8,24 +13,39 @@ import com.trolltech.qt.webkit.QWebView;
 
 
 public class VisualizerWindow extends QWebView {
+	
+	private boolean loaded = false;
+	private String scriptQueue = "";
+	
+	public static void main(String[] args){
+		 QApplication.instance();
+		QMainWindow test = new QMainWindow();
+		test.setCentralWidget(new VisualizerWindow());
+	}
 	 
 	    public VisualizerWindow() {
 	    	super();
-	        this.load(new QUrl(VisualizerWindow.class.getResource("index.html").toExternalForm()));	 
-//	        this.load(new QUrl("http://xkcd.com"));
+	    	this.loadFinished.connect(this, "loadFinished()");
+	    	this.load(new QUrl(VisualizerWindow.class.getResource("index.html").toExternalForm()));	 
+	       	//	        this.load(new QUrl("http://xkcd.com"));
+	    }
+	    
+	    public void loadFinished(){	  
+	    	loaded = true;
+	    	executeScript(scriptQueue);
+	    	scriptQueue = "";
+	    	System.out.println("Done!");
 	    }
 	   
 	    public void executeScript(String script){
 			script = script.replace('-', 'x');
 //			script += "start();";
-	    	System.out.println("Executing script: " + script);
-	    	this.page().mainFrame().evaluateJavaScript(script);
-//	    	try {
-//				Thread.sleep(1000);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
+			if(loaded){
+		    	System.out.println("// Executing script: \n" + script);
+		    	this.page().mainFrame().evaluateJavaScript(script);
+			} else{
+				scriptQueue += script;
+			}
 	    }
 	    
 	    public void start(){
