@@ -120,7 +120,7 @@ public class LinkStore {
 	
 	public String getName(String uid){
 		Node node = nodeIndex.get("uid", uid).getSingle();
-		if(node.hasProperty("name")){
+		if(node!=null && node.hasProperty("name")){
 			return (String) node.getProperty("name");
 		}
 		else return "";

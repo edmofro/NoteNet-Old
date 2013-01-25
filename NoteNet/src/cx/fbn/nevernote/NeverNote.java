@@ -311,6 +311,7 @@ public class NeverNote extends QMainWindow{
     QSplitter			mainLeftRightSplitter;		// main splitter for left/right side
     QSplitter 			leftSplitter1;				// first left hand splitter
     QSplitter			browserIndexSplitter;		// splitter between note index & note text
+    QSplitter			visualizerSplitter;			// splitter between browser and visualizer
     
     QFileSystemWatcher	importKeepWatcher;			// Watch & keep auto-import
     QFileSystemWatcher	importDeleteWatcher;		// Watch & Delete auto-import
@@ -561,18 +562,22 @@ public class NeverNote extends QMainWindow{
         visualizerWindow.setVisible(visualize);
         visualizerWindow.show();
         Global.view = visualizerWindow;
+        visualizerSplitter = new QSplitter();
+        visualizerSplitter.setOrientation(Qt.Orientation.Horizontal);
 
         mainLeftRightSplitter.addWidget(leftSplitter1);
-        mainLeftRightSplitter.addWidget(browserIndexSplitter);
+        mainLeftRightSplitter.addWidget(visualizerSplitter);
+        
+        visualizerSplitter.addWidget(browserIndexSplitter);
+        visualizerSplitter.addWidget(visualizerWindow);
+        
         
         if (Global.getListView() == Global.View_List_Wide) {
         	browserIndexSplitter.addWidget(noteTableView);
-//        	browserIndexSplitter.addWidget(browserWindow);
-        	browserIndexSplitter.addWidget(visualizerWindow);  
+        	browserIndexSplitter.addWidget(browserWindow);  
         } else {
         	mainLeftRightSplitter.addWidget(noteTableView);
-//        	mainLeftRightSplitter.addWidget(browserWindow);
-        	mainLeftRightSplitter.addWidget(visualizerWindow);  
+        	mainLeftRightSplitter.addWidget(browserWindow); 
         }
     	
     	// Setup the thumbnail viewer
@@ -775,12 +780,12 @@ public class NeverNote extends QMainWindow{
 
         if (Global.getListView() == Global.View_List_Wide) {
         	browserIndexSplitter.addWidget(noteTableView);
-        	//browserIndexSplitter.addWidget(browserWindow); 
-        	browserIndexSplitter.addWidget(visualizerWindow); 
+        	browserIndexSplitter.addWidget(browserWindow); 
+//        	browserIndexSplitter.addWidget(visualizerWindow); 
         } else {
         	mainLeftRightSplitter.addWidget(noteTableView);
-        	//mainLeftRightSplitter.addWidget(browserWindow); 
-        	mainLeftRightSplitter.addWidget(visualizerWindow); 
+        	mainLeftRightSplitter.addWidget(browserWindow); 
+//        	mainLeftRightSplitter.addWidget(visualizerWindow); 
         }
         
 		messageTimer = new QTimer();
@@ -797,6 +802,7 @@ public class NeverNote extends QMainWindow{
 		
 		if (Global.checkVersionUpgrade())
 			checkForUpdates();
+		
 	}
 		
 	// Main entry point
@@ -1329,6 +1335,7 @@ public class NeverNote extends QMainWindow{
         restoreState(Global.restoreState(objectName()));
 		mainLeftRightSplitter.setObjectName("mainLeftRightSplitter");
 		browserIndexSplitter.setObjectName("browserIndexSplitter");
+		visualizerSplitter.setObjectName("visualizerSplitter");
 		leftSplitter1.setObjectName("leftSplitter1");	
 		
 		// Restore the actual positions.
@@ -1336,6 +1343,7 @@ public class NeverNote extends QMainWindow{
 			restoreGeometry(Global.restoreGeometry(objectName()));
         mainLeftRightSplitter.restoreState(Global.restoreState(mainLeftRightSplitter.objectName()));
         browserIndexSplitter.restoreState(Global.restoreState(browserIndexSplitter.objectName()));
+        visualizerSplitter.restoreState(Global.restoreState(visualizerSplitter.objectName()));
         leftSplitter1.restoreState(Global.restoreState(leftSplitter1.objectName()));
        
 	}
@@ -1344,6 +1352,7 @@ public class NeverNote extends QMainWindow{
 		Global.saveGeometry(objectName(), saveGeometry());
 		Global.saveState(mainLeftRightSplitter.objectName(), mainLeftRightSplitter.saveState());
 		Global.saveState(browserIndexSplitter.objectName(), browserIndexSplitter.saveState());
+		Global.saveState(visualizerSplitter.objectName(), visualizerSplitter.saveState());
 		Global.saveState(leftSplitter1.objectName(), leftSplitter1.saveState());
 		Global.saveState(objectName(), saveState());
 	}    
@@ -4233,8 +4242,8 @@ public class NeverNote extends QMainWindow{
     	menuBar.narrowListView.blockSignals(false);
     	
     	mainLeftRightSplitter.addWidget(noteTableView);
-//    	mainLeftRightSplitter.addWidget(browserWindow);
-    	mainLeftRightSplitter.addWidget(visualizerWindow);
+    	mainLeftRightSplitter.addWidget(browserWindow);
+//    	mainLeftRightSplitter.addWidget(visualizerWindow);
     	
     	restoreWindowState(false);
     	noteTableView.repositionColumns();
@@ -4274,8 +4283,8 @@ public class NeverNote extends QMainWindow{
     	menuBar.narrowListView.blockSignals(false);
     	browserIndexSplitter.setVisible(true);
         browserIndexSplitter.addWidget(noteTableView);
-//        browserIndexSplitter.addWidget(browserWindow);
-        browserIndexSplitter.addWidget(visualizerWindow);
+        browserIndexSplitter.addWidget(browserWindow);
+//        browserIndexSplitter.addWidget(visualizerWindow);
         restoreWindowState(false);
     	noteTableView.repositionColumns();
     	noteTableView.resizeColumnWidths();

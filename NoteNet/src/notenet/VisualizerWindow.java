@@ -16,6 +16,8 @@ public class VisualizerWindow extends QWebView {
 	
 	private boolean loaded = false;
 	private String scriptQueue = "";
+	private int maxNameLength = 30;
+	QBridge bridge = new QBridge(this);
 	
 	public static void main(String[] args){
 		 QApplication.instance();
@@ -25,21 +27,30 @@ public class VisualizerWindow extends QWebView {
 	 
 	    public VisualizerWindow() {
 	    	super();
-	    	this.loadFinished.connect(this, "loadFinished()");
-	    	this.load(new QUrl(VisualizerWindow.class.getResource("index.html").toExternalForm()));	 
-	       	//	        this.load(new QUrl("http://xkcd.com"));
+	    	this.page().mainFrame().javaScriptWindowObjectCleared.connect(this, "javaScriptWindowObjectCleared()");
+	    	this.load(new QUrl(VisualizerWindow.class.getResource("index.html").toExternalForm()));	
+//	    	this.titleChanged.connect(this, "loadFinished()"); 
 	    }
 	    
-	    public void loadFinished(){	  
-	    	loaded = true;
-	    	executeScript(scriptQueue);
-	    	scriptQueue = "";
-	    	System.out.println("Done!");
+	    @SuppressWarnings("unused")
+		private final void javaScriptWindowObjectCleared()
+	    {
+	    	System.out.println("Connecting bridge");
+	        page().mainFrame().addToJavaScriptWindowObject("bridge", bridge);
+	    }
+	    
+	    public void loadFinished(){	
+	    	System.out.println(this.page().mainFrame().toHtml());
+	    	this.page().mainFrame().evaluateJavaScript("width = " + this.size().width() + ", height = " + this.size().height() + ";");
+	    	this.page().mainFrame().evaluateJavaScript("svg.attr(\"width\", width).attr(\"height\", height);force.size([width,height]);start();");
+	    	System.out.println(this.page().mainFrame().toHtml());
+	    	this.page().mainFrame().evaluateJavaScript(scriptQueue);
+	    	scriptQueue="";
+	    	loaded=true;
 	    }
 	   
 	    public void executeScript(String script){
-			script = script.replace('-', 'x');
-//			script += "start();";
+			script += "start();";
 			if(loaded){
 		    	System.out.println("// Executing script: \n" + script);
 		    	this.page().mainFrame().evaluateJavaScript(script);
@@ -49,41 +60,55 @@ public class VisualizerWindow extends QWebView {
 	    }
 	    
 	    public void start(){
-	    	executeScript("start();");
+//	    	executeScript("start();");
 	    }
 	    
 	    public void remove(ActivationNode node) {
+			String guid = dashReplace(node.getNoteGuid()); //Replace dashes with spaces in potential variable names so they don't confuse javascript
 			String script = 
-					"removeById( '" + node.getNoteGuid() + "');\n";
+					"removeById( '" + guid + "');\n";
 			executeScript(script);
 		}
 
 		public void fade(ActivationNode act) {
+			String guid = dashReplace(act.getNoteGuid()); //Replace dashes with spaces in potential variable names so they don't confuse javascript
 			String script = 
-					"changeActivationById( '" + act.getNoteGuid() + "', " + act.getActivation() + ");\n";
+					"changeActivationById( '" + guid + "', " + act.getActivation() + ");\n";
 			executeScript(script);
 		}
 		
 		public void boost(ActivationNode act, String linkNode, double linkStrength){
+			String guid = dashReplace(act.getNoteGuid()); //Replace dashes with spaces in potential variable names so they don't confuse javascript
 			String script = 
-					"changeActivationById( '" + act.getNoteGuid() + "', " + act.getActivation() + ");\n";
+					"changeActivationById( '" + guid + "', " + act.getActivation() + ");\n";
 			if(linkNode!=null){
+				linkNode = dashReplace(linkNode);
 				script += 
-					"linkNodes( '" + act.getNoteGuid() + "', '" + linkNode + "', " + linkStrength + ");";
+					"linkNodes( '" + guid + "', '" + linkNode + "', " + linkStrength + ");";
 			}
 			executeScript(script);
 		}
 
 		public void add(ActivationNode act, String linkNode, double linkStrength) {
+			String name = act.getName(); 
+			if(name.length()>maxNameLength){ 				//Shorten names if they are too long
+				name = name.substring(0, maxNameLength - 3) + "...";
+			}
+			String guid = dashReplace(act.getNoteGuid()); //Replace dashes with spaces in potential variable names so they don't confuse javascript
 			String script = 
-					"var n" + act.getNoteGuid() + " = {id: \'"+ act.getNoteGuid() + "\', name: \'" + act.getName() + "\', activation: " + act.getActivation() + " };\n" +
-				    "nodes.push(n" + act.getNoteGuid() + ");\n";
+					"var n" + guid + " = {id: \'" + guid + "\', name: \'" + name + "\', activation: " + act.getActivation() + " };\n" +
+				    "nodes.push(n" + guid + ");\n";
 			if(linkNode!=null){
+				linkNode = dashReplace(linkNode);
 				script +=
 //					"var n" + linkNode + "= findById( '" + linkNode + "');\n" + 
 //					"links.push({source: n" + act.getNoteGuid() + ", target: n" + linkNode + ", strength: " + (int) (linkStrength * 10) + "})\n";
-					"linkNodes( '" + act.getNoteGuid() + "', '" + linkNode + "', " + linkStrength + ");";
+					"linkNodes( '" + guid + "', '" + linkNode + "', " + linkStrength + ");";
 			}
 			executeScript(script);			
+		}
+		
+		public String dashReplace(String withDashes){
+			return withDashes.replace('-', 'x');
 		}
 	}

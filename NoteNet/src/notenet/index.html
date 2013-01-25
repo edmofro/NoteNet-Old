@@ -21,8 +21,10 @@
 <body>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script type="text/javascript">
-// 	setTimeout(test,1000); //uncomment for testing code to run
+// 	setTimeout(test,0); //uncomment for testing code to run
 
+	var firstTick = true;
+	
 	var width = 960,
 	height = 500,
 	nodeRadius = 10;
@@ -47,20 +49,17 @@
 	.attr("height", height);
 	
 	var node = svg.selectAll(".node"),
-	link = svg.selectAll(".link"),
-	nodeText= svg.selectAll(".nodeText"),
-	nodeCircle = svg.selectAll(".nodeCircle");
+	link = svg.selectAll(".link");
 	
 	node.on("mouseover", mouseover)
 		.on("mouseout", mouseout);
 	
 	function start() {
-		
 	//update activation of all of them
-	nodeCircle.attr("r", function(d) { return d.activation * nodeRadius + 1})
+	node.selectAll(".nodeCircle").attr("r", function(d) { return d.activation * nodeRadius + 1})
 		.style("fill", function(d) { return color(d.activation);});
 //  		.style("opacity", function(d) {return d.activation;});
-	nodeText.attr("y", function(d) { return d.activation * nodeRadius * 0.5})
+	node.selectAll(".nodeText").attr("y", function(d) { return d.activation * nodeRadius * 0.5})
 			.attr("x", function(d) { return d.activation * nodeRadius + 2});
 	
 	//link stuff
@@ -78,15 +77,12 @@
 									.on("mouseout", mouseout);
 	
 	
-	nodeCircle = nodeAnchor.append("circle")
+	nodeAnchor.append("circle")
 			.attr("class", "nodeCircle")
 			.attr("r", function(d) { return d.activation * nodeRadius + 1})
 			.style("fill", function(d) { return color(d.activation);});
-// 		.attr("class", function(d) { return "node " + d.id; })
-// 			.text(function(d) { return d.name; });
 
-	
-	nodeText = nodeAnchor.append("text")
+	nodeAnchor.append("text")
 			.attr("class", "nodeText")
 			.attr("y", function(d) { return d.activation * nodeRadius * 0.5})
 			.attr("x", function(d) { return d.activation * nodeRadius + 2})
@@ -102,13 +98,16 @@
 	}
 	
 	function tick() {
-		
+		if(firstTick){
+			bridge.callMethod("loadFinished");
+			firstTick = false;
+		}
 		node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 	
-	link.attr("x1", function(d) { return d.source.x; })
-	  .attr("y1", function(d) { return d.source.y; })
-	  .attr("x2", function(d) { return d.target.x; })
-	  .attr("y2", function(d) { return d.target.y; });
+		link.attr("x1", function(d) { return d.source.x; })
+		  .attr("y1", function(d) { return d.source.y; })
+		  .attr("x2", function(d) { return d.target.x; })
+		  .attr("y2", function(d) { return d.target.y; });
 	
 	
 	}
@@ -153,6 +152,7 @@
 		for (var i = 0; i < nodes.length; i++) {
 		    if (nodes[i].id === id) {
 		      	nodes[i].activation = newAct;
+				console.log("changed activation " + id + " to " + newAct + " : " + nodes[i].activation);
 		    	break;
 		    }
 		  }
@@ -187,6 +187,120 @@
 			start();
 			console.log(links);
 		}, 3000);
+		setTimeout(function() {
+			console.log("Test three");
+		}, 6000);
+		
+// 		setTimeout(emulate, 6000);
 	}
 	
+	function emulate(){
+		setTimeout(function() { console.log("Executing Script"); console.log("var ncd6feeb7x42d0x4482xab10x7903f1828db5 = {id: 'cd6feeb7x42d0x4482xab10x7903f1828db5', name: 'Mercury', activation: 1.0 };		nodes.push(ncd6feeb7x42d0x4482xab10x7903f1828db5);		start();");
+		var ncd6feeb7x42d0x4482xab10x7903f1828db5 = {id: 'cd6feeb7x42d0x4482xab10x7903f1828db5', name: 'Mercury', activation: 1.0 };
+		nodes.push(ncd6feeb7x42d0x4482xab10x7903f1828db5);
+		start();
+		
+		}, 1000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( 'cd6feeb7x42d0x4482xab10x7903f1828db5', 0.5);");
+		changeActivationById( 'cd6feeb7x42d0x4482xab10x7903f1828db5', 0.5);
+
+		start(); },2000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		var n5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96 = {id: '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', name: 'Lightbulb', activation: 1.0 };		nodes.push(n5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96);");
+		var n5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96 = {id: '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', name: 'Lightbulb', activation: 1.0 };
+		nodes.push(n5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96);
+
+		start(); },3000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		var n02ec66c7x2c2fx41edxae5bx2f12ccca7b0f = {id: '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', name: 'Filament', activation: 0.4 };		nodes.push(n02ec66c7x2c2fx41edxae5bx2f12ccca7b0f);		linkNodes( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);");
+		var n02ec66c7x2c2fx41edxae5bx2f12ccca7b0f = {id: '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', name: 'Filament', activation: 0.4 };
+		nodes.push(n02ec66c7x2c2fx41edxae5bx2f12ccca7b0f);
+		linkNodes( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);
+		start(); },4000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 1.0);		linkNodes( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 0.4);");
+		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 1.0);
+		linkNodes( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 0.4);
+		start(); },5000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 0.464);		linkNodes( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);");
+		changeActivationById( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 0.464);
+		linkNodes( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);
+		start(); },6000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		var n83e21264xffcbx4562xb61dx17f688091956 = {id: '83e21264xffcbx4562xb61dx17f688091956', name: 'Creativity', activation: 0.06400000000000002 };		nodes.push(n83e21264xffcbx4562xb61dx17f688091956);		linkNodes( '83e21264xffcbx4562xb61dx17f688091956', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);");
+		var n83e21264xffcbx4562xb61dx17f688091956 = {id: '83e21264xffcbx4562xb61dx17f688091956', name: 'Creativity', activation: 0.06400000000000002 };
+		nodes.push(n83e21264xffcbx4562xb61dx17f688091956);
+		linkNodes( '83e21264xffcbx4562xb61dx17f688091956', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);
+		start(); },7000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '83e21264xffcbx4562xb61dx17f688091956', 0.464);		linkNodes( '83e21264xffcbx4562xb61dx17f688091956', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);");
+		changeActivationById( '83e21264xffcbx4562xb61dx17f688091956', 0.464);
+		linkNodes( '83e21264xffcbx4562xb61dx17f688091956', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);
+		start(); },8000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 1.0);		linkNodes( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', '83e21264xffcbx4562xb61dx17f688091956', 0.4);");
+		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 1.0);
+		linkNodes( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', '83e21264xffcbx4562xb61dx17f688091956', 0.4);
+		start(); },9000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 0.528);		linkNodes( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);");
+		changeActivationById( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 0.528);
+		linkNodes( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);
+		start(); },10000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '83e21264xffcbx4562xb61dx17f688091956', 0.528);		linkNodes( '83e21264xffcbx4562xb61dx17f688091956', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);");
+		changeActivationById( '83e21264xffcbx4562xb61dx17f688091956', 0.528);
+		linkNodes( '83e21264xffcbx4562xb61dx17f688091956', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);
+		start(); },11000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		start();");
+		start();
+		}, 12000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( 'cd6feeb7x42d0x4482xab10x7903f1828db5', 0.25);");
+		changeActivationById( 'cd6feeb7x42d0x4482xab10x7903f1828db5', 0.25);
+
+		start(); },13000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '83e21264xffcbx4562xb61dx17f688091956', 0.264);");
+		changeActivationById( '83e21264xffcbx4562xb61dx17f688091956', 0.264);
+
+		start(); },14000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("	    changeActivationById( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 0.264);");
+		changeActivationById( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 0.264);
+
+		start(); },15000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.5);");
+		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.5);
+
+		start(); },16000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 1.0);");
+		changeActivationById( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 1.0);
+
+		start(); },17000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.9);		linkNodes( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 0.4);");
+		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.9);
+		linkNodes( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 0.4);
+		start(); },18000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 1.0);		linkNodes( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);");
+		changeActivationById( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 1.0);
+		linkNodes( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);
+		start(); },19000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.9640000000000001);		linkNodes( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 0.4);");
+		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.9640000000000001);
+		linkNodes( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 0.4);
+		start(); },20000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '83e21264xffcbx4562xb61dx17f688091956', 0.42400000000000004);		linkNodes( '83e21264xffcbx4562xb61dx17f688091956', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);");
+		changeActivationById( '83e21264xffcbx4562xb61dx17f688091956', 0.42400000000000004);
+		linkNodes( '83e21264xffcbx4562xb61dx17f688091956', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);
+		start(); },21000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 1.0);		linkNodes( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', '83e21264xffcbx4562xb61dx17f688091956', 0.4);");
+		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 1.0);
+		linkNodes( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', '83e21264xffcbx4562xb61dx17f688091956', 0.4);
+		start(); },22000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		start();");
+		start();
+		}, 23000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( 'cd6feeb7x42d0x4482xab10x7903f1828db5', 0.125);");
+		changeActivationById( 'cd6feeb7x42d0x4482xab10x7903f1828db5', 0.125);
+
+		start(); },24000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '83e21264xffcbx4562xb61dx17f688091956', 0.21200000000000002);");
+		changeActivationById( '83e21264xffcbx4562xb61dx17f688091956', 0.21200000000000002);
+
+		start(); },25000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 0.5);");
+		changeActivationById( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 0.5);
+
+		start(); },26000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.5);");
+		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.5);
+
+		start(); },27000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '83e21264xffcbx4562xb61dx17f688091956', 1.0);");
+		changeActivationById( '83e21264xffcbx4562xb61dx17f688091956', 1.0);
+
+		start(); },28000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.9);		linkNodes( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', '83e21264xffcbx4562xb61dx17f688091956', 0.4);");
+		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.9);
+		linkNodes( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', '83e21264xffcbx4562xb61dx17f688091956', 0.4);
+		start(); },29000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 0.66);		linkNodes( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);");
+		changeActivationById( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 0.66);
+		linkNodes( '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);
+		start(); },30000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.9640000000000001);		linkNodes( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 0.4);");
+		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.9640000000000001);
+		linkNodes( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', '02ec66c7x2c2fx41edxae5bx2f12ccca7b0f', 0.4);
+		start(); },31000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '83e21264xffcbx4562xb61dx17f688091956', 1.0);		linkNodes( '83e21264xffcbx4562xb61dx17f688091956', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);");
+		changeActivationById( '83e21264xffcbx4562xb61dx17f688091956', 1.0);
+		linkNodes( '83e21264xffcbx4562xb61dx17f688091956', '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 0.4);
+		start(); },32000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 1.0);		linkNodes( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', '83e21264xffcbx4562xb61dx17f688091956', 0.4);");
+		changeActivationById( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', 1.0);
+		linkNodes( '5c3ab3e0xd30dx4c06xa4eex43e03cfc7c96', '83e21264xffcbx4562xb61dx17f688091956', 0.4);
+		start(); },33000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		start();");
+		start();
+		}, 34000 + 2000);
+	}
 </script>
+</body>
+</html>
