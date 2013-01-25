@@ -21,9 +21,9 @@
 <body>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script type="text/javascript">
-// 	setTimeout(test,0); //uncomment for testing code to run
+	setTimeout(test,0); //uncomment for testing code to run
 
-	var firstTick = true;
+	var bridgeConnected = true;
 	
 	var width = 960,
 	height = 500,
@@ -52,7 +52,8 @@
 	link = svg.selectAll(".link");
 	
 	node.on("mouseover", mouseover)
-		.on("mouseout", mouseout);
+		.on("mouseout", mouseout)
+		.on("click", function(d){click(d.id);});
 	
 	function start() {
 	//update activation of all of them
@@ -74,7 +75,8 @@
 // 	add new nodes
 	var nodeAnchor = node.enter().append("g")
 									.on("mouseover", mouseover)
-									.on("mouseout", mouseout);
+									.on("mouseout", mouseout)
+									.on("click", function(d){click(d.id);});
 	
 	
 	nodeAnchor.append("circle")
@@ -98,10 +100,10 @@
 	}
 	
 	function tick() {
-		if(firstTick){
-			bridge.callMethod("loadFinished");
-			firstTick = false;
-		}
+// 		if(firstTick){
+// 			bridge.callMethod("loadFinished");
+// 			firstTick = false;
+// 		}
 		node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 	
 		link.attr("x1", function(d) { return d.source.x; })
@@ -122,6 +124,12 @@
 		var currentNodeText = d3.select(this.lastChild);
 		currentNodeText
 			.style("opacity", 0.25);
+	}
+	
+	function click(currentNodeId) {
+		if(bridgeConnected){
+			bridge.callMethod("clicked", currentNodeId);
+		}
 	}
 	
 	function findById(id) {
@@ -300,6 +308,10 @@
 		start(); },33000 + 2000); setTimeout(function() { console.log("Executing Script"); console.log("		start();");
 		start();
 		}, 34000 + 2000);
+	}
+	
+	if(bridgeConnected){
+		bridge.callMethod("loadFinished");
 	}
 </script>
 </body>

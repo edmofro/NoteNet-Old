@@ -37,13 +37,12 @@ public class VisualizerWindow extends QWebView {
 	    {
 	    	System.out.println("Connecting bridge");
 	        page().mainFrame().addToJavaScriptWindowObject("bridge", bridge);
+	        page().mainFrame().evaluateJavaScript("bridgeConnected = true;");
 	    }
 	    
 	    public void loadFinished(){	
-	    	System.out.println(this.page().mainFrame().toHtml());
 	    	this.page().mainFrame().evaluateJavaScript("width = " + this.size().width() + ", height = " + this.size().height() + ";");
 	    	this.page().mainFrame().evaluateJavaScript("svg.attr(\"width\", width).attr(\"height\", height);force.size([width,height]);start();");
-	    	System.out.println(this.page().mainFrame().toHtml());
 	    	this.page().mainFrame().evaluateJavaScript(scriptQueue);
 	    	scriptQueue="";
 	    	loaded=true;
@@ -110,5 +109,9 @@ public class VisualizerWindow extends QWebView {
 		
 		public String dashReplace(String withDashes){
 			return withDashes.replace('-', 'x');
+		}
+		
+		public void clicked(String guid){
+			System.out.println(guid + " was clicked");
 		}
 	}
