@@ -9,6 +9,8 @@ import com.trolltech.qt.gui.QMainWindow;
 import com.trolltech.qt.gui.QWidget;
 import com.trolltech.qt.webkit.QWebView;
 
+import cx.fbn.nevernote.gui.BrowserWindow;
+
 
 
 
@@ -18,15 +20,17 @@ public class VisualizerWindow extends QWebView {
 	private String scriptQueue = "";
 	private int maxNameLength = 30;
 	QBridge bridge = new QBridge(this);
+	BrowserWindow browser;
 	
 	public static void main(String[] args){
 		 QApplication.instance();
 		QMainWindow test = new QMainWindow();
-		test.setCentralWidget(new VisualizerWindow());
+		test.setCentralWidget(new VisualizerWindow(null));
 	}
 	 
-	    public VisualizerWindow() {
+	    public VisualizerWindow(BrowserWindow browserWindow) {
 	    	super();
+	    	browser = browserWindow;
 	    	this.page().mainFrame().javaScriptWindowObjectCleared.connect(this, "javaScriptWindowObjectCleared()");
 	    	this.load(new QUrl(VisualizerWindow.class.getResource("index.html").toExternalForm()));	
 //	    	this.titleChanged.connect(this, "loadFinished()"); 
@@ -51,7 +55,7 @@ public class VisualizerWindow extends QWebView {
 	    public void executeScript(String script){
 			script += "start();";
 			if(loaded){
-		    	System.out.println("// Executing script: \n" + script);
+//		    	System.out.println("// Executing script: \n" + script);
 		    	this.page().mainFrame().evaluateJavaScript(script);
 			} else{
 				scriptQueue += script;
@@ -113,5 +117,6 @@ public class VisualizerWindow extends QWebView {
 		
 		public void clicked(String guid){
 			System.out.println(guid + " was clicked");
+			browser.noteClicked(guid);
 		}
 	}
