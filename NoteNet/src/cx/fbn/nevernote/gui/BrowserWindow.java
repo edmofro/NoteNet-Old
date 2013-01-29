@@ -958,15 +958,24 @@ public class BrowserWindow extends QWidget {
         }
 	}
 	
-	// Handle setting a note from external command
-	
-	public void noteClicked(String selectedGuid){
-		logger.log(logger.EXTREME, "Note Clicked: " + selectedGuid);
-		User user = Global.getUserInformation();
-		String sid = user.getShardId();
-		String lid = selectedGuid;
-		evernoteLinkClicked.emit(sid, lid);
-	}
+//	// Handle setting a note from external command
+//	
+//	public void noteClicked(String selectedGuid){
+//		logger.log(logger.EXTREME, "Note Clicked: " + selectedGuid);
+//		String sid = user.getShardId();
+//		String lid = "";
+//		Note selectedNote = conn.getNoteTable().getNote(selectedGuid, false, false, false, false, false);
+//   		if (selectedNote.getUpdateSequenceNum() > 0) {
+//   			gid = selectedGuid;
+//   			lid = selectedGuid;
+//   		} else {
+//   			gid = "00000000-0000-0000-0000-000000000000";
+//   			lid = selectedGuid;
+//   		}
+////			gid = selectedGuid;
+////			lid = selectedGuid;
+//		evernoteLinkClicked.emit(sid, lid);
+//	}
 	
 	
 	// Listener for when a link is clicked
@@ -987,7 +996,6 @@ public class BrowserWindow extends QWidget {
 			tokens.nextToken();
 			String sid = tokens.nextToken();
 			String lid = tokens.nextToken();
-			System.out.println("Clicked: " + url.toString() + ", fetching sid = " + sid + ", lid = " + lid);
 			
 			// Emit that we want to switch to a new note
 			evernoteLinkClicked.emit(sid, lid);
@@ -3521,17 +3529,9 @@ public class BrowserWindow extends QWidget {
 		String linksText = "This note linked to:<br><br>";
 		Map<String, Double> linksMap = Global.linksTable.getLinks(currentNote.getGuid());
 		User user = Global.getUserInformation();
-		String gid, lid;
 		for(Entry<String,Double> e : linksMap.entrySet()){
 			Note note = conn.getNoteTable().getNote(e.getKey(), false, false, false, false, false);
-			if (note.getUpdateSequenceNum() > 0) {
-	   			gid = e.getKey();
-	   			lid = e.getKey();
-	   		} else {
-	   			gid = "00000000-0000-0000-0000-000000000000";
-	   			lid = e.getKey();
-	   		}
-			String noteURL =  "evernote:///view/" + user.getId() + "/" + user.getShardId() + "/" + gid + "/" + lid + "/";
+			String noteURL =  "evernote:///view/" + user.getId() + "/" + user.getShardId() + "/" + note.getGuid() + "/" + note.getGuid() + "/";
 			linksText += "<a title=\"" + noteURL + " style=\" color:#69aa35\"\"=\"\" href=\"" + noteURL + "style=\"color:#69aa35\">" + note.getTitle() + "</a> with strength " + e.getValue() + "<br>";
 			
 		}
@@ -3543,17 +3543,9 @@ public class BrowserWindow extends QWidget {
 		String activationText = "Currently activated notes:<br><br>";
 		List<ActivationNode> activeNotes = Global.activatedNotes.getActivatedNotes();
 		User user = Global.getUserInformation();
-		String gid, lid;
 		for(ActivationNode act : activeNotes){
 			Note note = conn.getNoteTable().getNote(act.getNoteGuid(), false, false, false, false, false);
-			if (note.getUpdateSequenceNum() > 0) {
-	   			gid = act.getNoteGuid();
-	   			lid = act.getNoteGuid();
-	   		} else {
-	   			gid = "00000000-0000-0000-0000-000000000000";
-	   			lid = act.getNoteGuid();
-	   		}
-			String noteURL =  "evernote:///view/" + user.getId() + "/" + user.getShardId() + "/" + gid + "/" + lid + "/";
+			String noteURL =  "evernote:///view/" + user.getId() + "/" + user.getShardId() + "/" + note.getGuid() + "/" + note.getGuid() + "/";
 			activationText += "<a title=\"" + noteURL + " style=\" color:#69aa35\"\"=\"\" href=\"" + noteURL + "style=\"color:#69aa35\">" + note.getTitle() + "</a> with strength " + act.getActivation() + "<br>";
 			
 		}

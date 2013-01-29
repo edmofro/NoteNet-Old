@@ -9,6 +9,7 @@ import com.trolltech.qt.gui.QMainWindow;
 import com.trolltech.qt.gui.QWidget;
 import com.trolltech.qt.webkit.QWebView;
 
+import cx.fbn.nevernote.NeverNote;
 import cx.fbn.nevernote.gui.BrowserWindow;
 
 
@@ -20,7 +21,9 @@ public class VisualizerWindow extends QWebView {
 	private String scriptQueue = "";
 	private int maxNameLength = 30;
 	QBridge bridge = new QBridge(this);
-	BrowserWindow browser;
+	NeverNote application;
+	String replaceString = "xXx";
+	public Signal1<String> selectionSignal = new Signal1<String>();
 	
 	public static void main(String[] args){
 		 QApplication.instance();
@@ -28,9 +31,9 @@ public class VisualizerWindow extends QWebView {
 		test.setCentralWidget(new VisualizerWindow(null));
 	}
 	 
-	    public VisualizerWindow(BrowserWindow browserWindow) {
+	    public VisualizerWindow(NeverNote neverNote) {
 	    	super();
-	    	browser = browserWindow;
+	    	application = neverNote;
 	    	this.page().mainFrame().javaScriptWindowObjectCleared.connect(this, "javaScriptWindowObjectCleared()");
 	    	this.load(new QUrl(VisualizerWindow.class.getResource("index.html").toExternalForm()));	
 //	    	this.titleChanged.connect(this, "loadFinished()"); 
@@ -39,7 +42,6 @@ public class VisualizerWindow extends QWebView {
 	    @SuppressWarnings("unused")
 		private final void javaScriptWindowObjectCleared()
 	    {
-	    	System.out.println("Connecting bridge");
 	        page().mainFrame().addToJavaScriptWindowObject("bridge", bridge);
 	        page().mainFrame().evaluateJavaScript("bridgeConnected = true;");
 	    }
@@ -112,11 +114,15 @@ public class VisualizerWindow extends QWebView {
 		}
 		
 		public String dashReplace(String withDashes){
-			return withDashes.replace('-', 'x');
+			return withDashes.replace("-", replaceString);
+		}
+		
+		public String reverseDashReplace(String withoutDashes){
+			return withoutDashes.replace(replaceString, "-");
 		}
 		
 		public void clicked(String guid){
-			System.out.println(guid + " was clicked");
-			browser.noteClicked(guid);
+			guid = reverseDashReplace(guid);
+			selectionSignal.emit(guid);
 		}
 	}
