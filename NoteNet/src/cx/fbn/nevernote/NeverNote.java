@@ -558,9 +558,10 @@ public class NeverNote extends QMainWindow{
         browserWindow = new BrowserWindow(conn);
         
         //Visualizer window init
-        visualizerWindow = new VisualizerWindow(browserWindow);
+        visualizerWindow = new VisualizerWindow(this);
         visualizerWindow.setVisible(visualize);
         visualizerWindow.show();
+        visualizerWindow.selectionSignal.connect(this, "noteClicked(String)");
         Global.view = visualizerWindow;
         visualizerSplitter = new QSplitter();
         visualizerSplitter.setOrientation(Qt.Orientation.Horizontal);
@@ -1246,6 +1247,7 @@ public class NeverNote extends QMainWindow{
 		browser.noteSignal.tagsChanged.connect(this, "updateNoteTags(String, List)");
 	    browser.noteSignal.tagsChanged.connect(this, "updateListTags(String, List)");
 	    if (master) browser.noteSignal.noteChanged.connect(this, "setNoteDirty()");
+	    browser.noteSignal.noteSelected.connect(this, "noteClicked(String)");
 	    browser.noteSignal.titleChanged.connect(listManager, "updateNoteTitle(String, String)");
 	    browser.noteSignal.titleChanged.connect(this, "updateNoteTitle(String, String)");
 	    browser.noteSignal.notebookChanged.connect(this, "updateNoteNotebook(String, String)");
@@ -3673,6 +3675,7 @@ public class NeverNote extends QMainWindow{
 	// Handle the event that a user selects a note from the table
     @SuppressWarnings("unused")
 	private void noteTableSelection() {
+    	System.out.println("Selecting note");
 		logger.log(logger.HIGH, "Entering NeverNote.noteTableSelection");
 
 		saveNote();
@@ -4105,6 +4108,23 @@ public class NeverNote extends QMainWindow{
     	updateListDateChanged(currentNoteGuid, date);
     	logger.log(logger.HIGH, "Leaving NeverNote.updateListDateChanged");
     }  
+    
+    // Set current note based on external command
+    // TODO Abstract this away into visualizerWindow so it doesn't need to take nevernote
+    public void noteClicked(String guid){
+    	for (int i=0; i<noteTableView.model().rowCount(); i++) {
+    		QModelIndex modelIndex =  noteTableView.model().index(i, Global.noteTableGuidPosition);
+    		if (modelIndex != null) {
+    			SortedMap<Integer, Object> ix = noteTableView.model().itemData(modelIndex);
+    			String tableGuid =  (String)ix.values().toArray()[0];
+    			if (tableGuid.equals(guid)) {
+    				noteTableView.selectRow(i);
+    				return;
+    			}	
+    		}
+    	};
+    }
+    
     // Redo scroll
 	private void scrollToCurrentGuid() {
     	//scrollToGuid(currentNoteGuid);
