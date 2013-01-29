@@ -41,7 +41,6 @@ import com.trolltech.qt.gui.QLabel;
 import com.trolltech.qt.gui.QPushButton;
 import com.trolltech.qt.gui.QVBoxLayout;
 
-import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.gui.BrowserWindow;
 import cx.fbn.nevernote.sql.DatabaseConnection;
 import cx.fbn.nevernote.utilities.ApplicationLogger;
@@ -61,7 +60,7 @@ public class NoteQuickLinkDialog extends QDialog {
 	private final String iconPath = new String("classpath:cx/fbn/nevernote/icons/");
 	
 	// Constructor
-	public NoteQuickLinkDialog(ApplicationLogger l, DatabaseConnection c, String text, String currentNoteGuid) {
+	public NoteQuickLinkDialog(ApplicationLogger l, DatabaseConnection c, String text) {
 		okPressed = false;
 		setWindowTitle(tr("Quick Link Notes"));
 		setWindowIcon(new QIcon(iconPath+"notebook-green.png"));
@@ -102,10 +101,6 @@ public class NoteQuickLinkDialog extends QDialog {
 		
 		// Search for matching notes
 		results = conn.getNoteTable().findNotesByTitle(text);
-		
-		for(String noteGuid : Global.activatedNotes.getFullyActive()){
-			results.add(new Pair<String, String>(noteGuid,conn.getNoteTable().getNote(noteGuid, false, false, false, false, false).getTitle()));
-		}
 		
 		// Add the results to the combo box
 		for (int i=0; i<results.size(); i++) {
