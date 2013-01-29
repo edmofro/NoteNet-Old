@@ -50,6 +50,7 @@ import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QSettings;
 import com.trolltech.qt.core.QSize;
 import com.trolltech.qt.gui.QPalette;
+import com.trolltech.qt.gui.QSystemTrayIcon;
 
 import cx.fbn.nevernote.config.FileManager;
 import cx.fbn.nevernote.config.InitializationException;
@@ -70,10 +71,10 @@ import cx.fbn.nevernote.utilities.Pair;
 
 public class Global {
 	// Set current version and the known versions.
-	public static String version = "1.2";
-	public static String[] validVersions = {"1.2", "1.1", "1.0", "0.99", "0.98", "0.97", "0.96"};
+	public static String version = "1.4";
+	public static String[] validVersions = {"1.4", "1.3", "1.2", "1.1", "1.0", "0.99", "0.98", "0.97", "0.96"};
     public static String username = ""; 
-    public static String password = "";     
+    //public static String password = "";     
     
 
     // Each thread has an ID.  This is used primarily to check the status
@@ -197,6 +198,8 @@ public class Global {
 	static Calendar startTraceTime;   
 	static Calendar intervalTraceTime;
 	
+	static boolean syncOnly;
+	
 	private static FileManager fileManager;  // Used to access files & directories
 	
 	//Visualizer
@@ -206,6 +209,7 @@ public class Global {
     public static void setup(StartupConfig startupConfig) throws InitializationException  {
         settings = new QSettings("fbn.cx", startupConfig.getName());
         disableViewing = startupConfig.getDisableViewing();
+        syncOnly = startupConfig.isSyncOnly();
 
         fileManager = new FileManager(startupConfig.getHomeDirPath(), startupConfig.getProgramDirPath());
 
@@ -240,6 +244,7 @@ public class Global {
 		
 		linksTable = new LinkStore();
 		activatedNotes = new ActivationTable(MAX_ACTIVATED);
+		Global.username = getUserInformation().getUsername();
     }
 
     // Get/Set word parsing regular expression
@@ -473,7 +478,7 @@ public class Global {
 		try {
 			String max = (String) settings.value("showTrayIcon", "false");
 			settings.endGroup();
-			if (!max.equalsIgnoreCase("true"))
+			if (!max.equalsIgnoreCase("true") || !QSystemTrayIcon.isSystemTrayAvailable())
 				return false;
 			else
 				return true;   	
@@ -672,6 +677,7 @@ public class Global {
 //			noteStoreUrlBase = "http://" + noteStoreUrlBase;
 		return text;
     }
+    
 
     // Get/Set if we should disable uploads to Evernote
     public static boolean disableUploads() {
@@ -1730,7 +1736,7 @@ public class Global {
 		try {
 			String text = (String)settings.value("minimizeOnClose", "false");
 			settings.endGroup();
-			if (text.equalsIgnoreCase("true"))
+			if (text.equalsIgnoreCase("true") && QSystemTrayIcon.isSystemTrayAvailable())
 				return true;
 			else
 				return false;
@@ -2050,6 +2056,23 @@ public class Global {
 		settings.beginGroup("General");
 		settings.setValue("displayRightToLeft", value);
 		settings.endGroup();	
+    }
+
+
+    //***********************
+    //* Startup Notebook
+    //***********************
+    public static String getStartupNotebook() {
+		settings.beginGroup("General");
+		String text = (String)settings.value("startupNotebook", "");
+		settings.endGroup();	
+		return text;
+    }
+    public static void setStartupNotebook(String value) {
+		settings.beginGroup("General");
+		settings.setValue("startupNotebook", value);
+		settings.endGroup();	
+		databaseCache = value;
     }
 }
 
