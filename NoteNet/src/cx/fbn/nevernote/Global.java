@@ -28,16 +28,8 @@ import java.io.ObjectOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
-
-import notenet.ActivationNode;
-import notenet.ActivationTable;
-import notenet.LinkStore;
-import notenet.VisualizerWindow;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
@@ -50,6 +42,7 @@ import com.trolltech.qt.core.QByteArray;
 import com.trolltech.qt.core.QSettings;
 import com.trolltech.qt.core.QSize;
 import com.trolltech.qt.gui.QPalette;
+import com.trolltech.qt.gui.QSystemTrayIcon;
 
 import cx.fbn.nevernote.config.FileManager;
 import cx.fbn.nevernote.config.InitializationException;
@@ -70,10 +63,10 @@ import cx.fbn.nevernote.utilities.Pair;
 
 public class Global {
 	// Set current version and the known versions.
-	public static String version = "1.2";
-	public static String[] validVersions = {"1.2", "1.1", "1.0", "0.99", "0.98", "0.97", "0.96"};
+	public static String version = "1.4";
+	public static String[] validVersions = {"1.4", "1.3", "1.2", "1.1", "1.0", "0.99", "0.98", "0.97", "0.96"};
     public static String username = ""; 
-    public static String password = "";     
+    //public static String password = "";     
     
 
     // Each thread has an ID.  This is used primarily to check the status
@@ -89,9 +82,6 @@ public class Global {
     public static final int indexThread04Id=8;   // unused
     public static final int dbThreadId=9;   // This should always be the highest thread ID
     public static final int threadCount = 10;
-	public static final int MAX_ACTIVATED = 20; // Size of the priority queue of activated notes
-	public static final double FADE_PROPORTION = 0.5; // Amount of deactivation each iteration
-	public static final double LINK_STRENGTH_FINDRELATED = 0.4; // Strength of link between notes returned by a findRelated query
     
     
     // These variables deal with where the list of notes appears
@@ -170,10 +160,6 @@ public class Global {
 	public static DateAttributeFilterTable changedBeforeFilter;
 	public static ContainsAttributeFilterTable containsFilter;
 	
-	// NoteNet database fields
-	public static LinkStore linksTable;
-	public static ActivationTable activatedNotes;
-	
 	// Log file used for debugging
 	public static ApplicationLogger    logger;
 	//PrintStream stdoutStream;
@@ -197,15 +183,15 @@ public class Global {
 	static Calendar startTraceTime;   
 	static Calendar intervalTraceTime;
 	
-	private static FileManager fileManager;  // Used to access files & directories
+	static boolean syncOnly;
 	
-	//Visualizer
-	public static VisualizerWindow view;
+	private static FileManager fileManager;  // Used to access files & directories
 	
     // Do initial setup 
     public static void setup(StartupConfig startupConfig) throws InitializationException  {
         settings = new QSettings("fbn.cx", startupConfig.getName());
         disableViewing = startupConfig.getDisableViewing();
+        syncOnly = startupConfig.isSyncOnly();
 
         fileManager = new FileManager(startupConfig.getHomeDirPath(), startupConfig.getProgramDirPath());
 
@@ -238,8 +224,7 @@ public class Global {
 			
 		databaseCache = getDatabaseCacheSize();	 // Set database cache size	
 		
-		linksTable = new LinkStore();
-		activatedNotes = new ActivationTable(MAX_ACTIVATED);
+		Global.username = getUserInformation().getUsername();
     }
 
     // Get/Set word parsing regular expression
@@ -473,7 +458,7 @@ public class Global {
 		try {
 			String max = (String) settings.value("showTrayIcon", "false");
 			settings.endGroup();
-			if (!max.equalsIgnoreCase("true"))
+			if (!max.equalsIgnoreCase("true") || !QSystemTrayIcon.isSystemTrayAvailable())
 				return false;
 			else
 				return true;   	
@@ -621,31 +606,6 @@ public class Global {
 			settings.setValue("automaticLogin", "true");
 		else
 			settings.setValue("automaticLogin", "false");
-		settings.endGroup();
-    }
-    
-    // Should it save the Evernote password?
-    public static boolean rememberPassword() {
-    	try {
-			settings.beginGroup("General");
-			String text = (String)settings.value("rememberPassword", "false");
-			settings.endGroup();
-			if (text.equalsIgnoreCase("true"))
-				return true;
-			else
-				return false;	
-		} catch (java.lang.ClassCastException e) {
-			Boolean value = (Boolean) settings.value("rememberPassword", false);
-			settings.endGroup();
-			return value;
-		}
-    }
-    public static void setRememberPassword(boolean val) {
-		settings.beginGroup("General");
-		if (val)
-			settings.setValue("rememberPassword", "true");
-		else
-			settings.setValue("rememberPassword", "false");
 		settings.endGroup();
     }
 
@@ -1730,7 +1690,7 @@ public class Global {
 		try {
 			String text = (String)settings.value("minimizeOnClose", "false");
 			settings.endGroup();
-			if (text.equalsIgnoreCase("true"))
+			if (text.equalsIgnoreCase("true") && QSystemTrayIcon.isSystemTrayAvailable())
 				return true;
 			else
 				return false;
@@ -2050,6 +2010,23 @@ public class Global {
 		settings.beginGroup("General");
 		settings.setValue("displayRightToLeft", value);
 		settings.endGroup();	
+    }
+
+
+    //***********************
+    //* Startup Notebook
+    //***********************
+    public static String getStartupNotebook() {
+		settings.beginGroup("General");
+		String text = (String)settings.value("startupNotebook", "");
+		settings.endGroup();	
+		return text;
+    }
+    public static void setStartupNotebook(String value) {
+		settings.beginGroup("General");
+		settings.setValue("startupNotebook", value);
+		settings.endGroup();	
+		databaseCache = value;
     }
 }
 
