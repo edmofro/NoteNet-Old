@@ -21,6 +21,7 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.security.MessageDigest;
@@ -139,6 +140,7 @@ import com.trolltech.qt.gui.QTextEdit;
 import com.trolltech.qt.gui.QToolBar;
 import com.trolltech.qt.gui.QTreeWidgetItem;
 import com.trolltech.qt.network.QNetworkAccessManager;
+import com.trolltech.qt.network.QNetworkProxy;
 import com.trolltech.qt.network.QNetworkReply;
 import com.trolltech.qt.network.QNetworkRequest;
 import com.trolltech.qt.webkit.QWebPage.WebAction;
@@ -273,6 +275,7 @@ public class NeverNote extends QMainWindow{
     QTimer					authTimer;					// Refresh authentication
     QTimer					externalFileSaveTimer;		// Save files altered externally
     QTimer					thumbnailTimer;				// Wakeup & scan for thumbnails
+    QTimer					debugTimer;
     List<String>			externalFiles;				// External files to save later
     List<String>			importFilesKeep;			// Auto-import files to save later
     List<String>			importFilesDelete;			// Auto-import files to save later
@@ -347,7 +350,7 @@ public class NeverNote extends QMainWindow{
     boolean				encryptOnShutdown;			// should I encrypt when I close?
     boolean				decryptOnShutdown;			// should I decrypt on shutdown;
     String				encryptCipher;				// What cipher should I use?
-    Signal0 			minimizeToTray;
+    //Signal0 			minimizeToTray;
     boolean				windowMaximized = false;	// Keep track of the window state for restores
     List<String>		pdfReadyQueue;				// Queue of PDFs that are ready to be rendered.
     List<QPixmap>		syncIcons;					// Array of icons used in sync animation
@@ -737,12 +740,14 @@ public class NeverNote extends QMainWindow{
         tagTree.showAllTags(true);
 
 		QIcon appIcon = new QIcon(iconPath+"nevernote.png");
-    	setWindowIcon(appIcon);
-    	trayIcon.setIcon(appIcon);
-    	if (Global.showTrayIcon())
-    		trayIcon.show();
-    	else
-    		trayIcon.hide();
+		if (QSystemTrayIcon.isSystemTrayAvailable()) {
+			setWindowIcon(appIcon);
+			trayIcon.setIcon(appIcon);
+			if (Global.showTrayIcon() || Global.minimizeOnClose())
+				trayIcon.show();
+			else
+				trayIcon.hide();
+		}
     	
     	scrollToGuid(currentNoteGuid);
     	if (Global.automaticLogin()) {
@@ -797,13 +802,42 @@ public class NeverNote extends QMainWindow{
     	int sortCol = Global.getSortColumn();
 		int sortOrder = Global.getSortOrder();
 		noteTableView.proxyModel.blocked = true;
+		// We sort the table twice to fix a bug.  For some reaosn the table won't sort properly if it is in narrow
+		// list view and sorted descending on the date  created.  By sorting it twice it forces the proper sort.  Ugly.
+		if (sortCol == 0 && sortOrder == 1 && Global.getListView() == Global.View_List_Narrow) 
+			noteTableView.sortByColumn(sortCol, SortOrder.resolve(0));   
 		noteTableView.sortByColumn(sortCol, SortOrder.resolve(sortOrder));
 		noteTableView.proxyModel.blocked = false;
 		noteTableView.proxyModel.sortChanged.connect(this, "tableSortOrderChanged(Integer,Integer)");
 		
+		// Set the startup notebook
+    	String defaultNotebook = Global.getStartupNotebook();
+    	if (!defaultNotebook.equals("AllNotebooks") && !defaultNotebook.equals("")) {
+    		for (int k=0; k<listManager.getNotebookIndex().size(); k++) {
+    			if (listManager.getNotebookIndex().get(k).isDefaultNotebook()) {
+    				notebookTree.clearSelection();
+    				notebookTree.selectGuid(listManager.getNotebookIndex().get(k).getGuid());
+    				notebookTree.selectionSignal.emit();
+    			}
+    		}
+    	}
+		
+   
+			
+			
 		if (Global.checkVersionUpgrade())
 			checkForUpdates();
 		
+	}
+	
+	
+	public void debugDirty() {
+		List<Note> dirty = conn.getNoteTable().getDirty();
+		logger.log(logger.LOW, "------ Dirty Notes List Begin ------");
+		for (int i=0; i<dirty.size(); i++) {
+			logger.log(logger.LOW, "GUID: " +dirty.get(i).getGuid() + " Title:" + dirty.get(i).getTitle());
+		}
+		logger.log(logger.LOW, "------ Dirty Notes List End ------");
 	}
 		
 	// Main entry point
@@ -834,8 +868,53 @@ public class NeverNote extends QMainWindow{
             QMessageBox.critical(null, "Startup error", "Aborting: " + e.getMessage());
             return;
         }
+        
+		// Setup proxy crap
+		String proxyUrl = Global.getProxyValue("url");
+		String proxyPort = Global.getProxyValue("port");
+		String proxyUserid = Global.getProxyValue("userid");
+		String proxyPassword = Global.getProxyValue("password");
+		boolean proxySet = false;
+		QNetworkProxy proxy = new QNetworkProxy();
+		proxy.setType(ProxyType.HttpProxy);
+		if (!proxyUrl.trim().equals("")) {
+			System.out.println("Proxy URL found: " +proxyUrl);
+			proxySet = true;
+			proxy.setHostName(proxyUrl);
+		}
+		if (!proxyPort.trim().equals("")) {
+			System.out.println("Proxy Port found: " +proxyPort);
+			proxySet = true;
+			proxy.setPort(Integer.parseInt(proxyPort));
+		}
+		if (!proxyUserid.trim().equals("")) {
+			System.out.println("Proxy Userid found: " +proxyUserid);
+			proxySet = true;
+			proxy.setUser(proxyUserid);
+		}
+		if (!proxyPassword.trim().equals("")) {
+			System.out.println("Proxy URL found: " +proxyPassword);
+			proxySet = true;
+			proxy.setPassword(proxyPassword);
+		}
+		if (proxySet) {
+			QNetworkProxy.setApplicationProxy(proxy);
+		}
+			
 
         NeverNote application = new NeverNote(dbConn);
+		if (Global.syncOnly) {
+			System.out.println("Performing synchronization only.");
+			application.remoteConnect();
+			if (Global.isConnected) {
+				application.syncRunner.syncNeeded = true;
+				application.syncRunner.addWork("SYNC");
+				application.syncRunner.addWork("STOP");
+				while(!application.syncRunner.isIdle());
+				application.closeNeverNote();
+			}
+			return;
+		}
 
 		application.setAttribute(WidgetAttribute.WA_DeleteOnClose, true);
 		if (Global.startMinimized()) 
@@ -1043,6 +1122,8 @@ public class NeverNote extends QMainWindow{
                startupConfig.setHomeDirPath(arg.substring(arg.indexOf('=') + 1));
             if (lower.startsWith("--disable-viewing"))
                startupConfig.setDisableViewing(true);
+            if (lower.startsWith("--sync-only=true"))
+                startupConfig.setSyncOnly(true);
         }
         Global.setup(startupConfig);
     }
@@ -1050,7 +1131,7 @@ public class NeverNote extends QMainWindow{
     // Exit point
 	@Override
 	public void closeEvent(QCloseEvent event) {	
-		if (Global.minimizeOnClose() && !closeAction && Global.showTrayIcon()) {
+		if (Global.minimizeOnClose() && !closeAction) {
 			event.ignore();
 			hide();
 			return;
@@ -1179,20 +1260,28 @@ public class NeverNote extends QMainWindow{
 		close();
 	}
 	public void setMessage(String s) {
-		logger.log(logger.HIGH, "Entering NeverNote.setMessage");
+		if (logger != null) 
+			logger.log(logger.HIGH, "Entering NeverNote.setMessage");
+		else
+			System.out.println("*** ERROR *** " +s);
 		
-		statusBar.show();
-		logger.log(logger.HIGH, "Message: " +s);
-		statusBar.showMessage(s);
-		emitLog.add(s);
+		if (statusBar != null) {
+			statusBar.show();
+			if (logger != null) 
+				logger.log(logger.HIGH, "Message: " +s);
+			statusBar.showMessage(s);
+			if (emitLog != null)
+				emitLog.add(s);
 		
-
-		messageTimer.stop();
-		messageTimer.setSingleShot(true);
-		messageTimer.start();
-		
-		
-		logger.log(logger.HIGH, "Leaving NeverNote.setMessage");
+			if (messageTimer != null) {
+				messageTimer.stop();
+				messageTimer.setSingleShot(true);
+				messageTimer.start();
+			}
+		}
+			
+		if (logger != null) 
+			logger.log(logger.HIGH, "Leaving NeverNote.setMessage");
 	}
 	
 	private void clearMessage() {
@@ -1298,7 +1387,7 @@ public class NeverNote extends QMainWindow{
         indexRunner.indexNoteTitle = Global.indexNoteTitle();
         indexRunner.specialIndexCharacters = Global.getSpecialIndexCharacters();
         indexRunner.indexImageRecognition = Global.indexImageRecognition();
-        if (Global.showTrayIcon())
+        if (Global.showTrayIcon() || Global.minimizeOnClose())
         	trayIcon.show();
         else
         	trayIcon.hide();
@@ -1485,7 +1574,8 @@ public class NeverNote extends QMainWindow{
 		clearSavedSearchFilter();
 		if (Global.mimicEvernoteInterface) {
 			clearTagFilter();
-			searchField.clear();
+			//searchField.clear();
+			searchField.clearEditText();
 		}
 		menuBar.noteRestoreAction.setVisible(false);		
     	menuBar.notebookEditAction.setEnabled(true);
@@ -2174,9 +2264,12 @@ public class NeverNote extends QMainWindow{
 				if (currentNote != null && currentNote.getTagGuids().contains(guid))
 					browserWindow.setTag(getTagNamesForNote(currentNote));
 				logger.log(logger.HIGH, "Leaving NeverNote.editTag");
-				return;
+				//return;
 			}
 		}
+		listManager.reloadNoteTagNames(guid, edit.getTag());
+		noteIndexUpdated(true);
+		refreshEvernoteNote(true);
 		browserWindow.setTag(getTagNamesForNote(currentNote));
 		logger.log(logger.HIGH, "Leaving NeverNote.editTag...");
 	}
@@ -3461,6 +3554,7 @@ public class NeverNote extends QMainWindow{
     private void remoteConnect() {
     	logger.log(logger.HIGH, "Entering NeverNote.remoteConnect");
 
+    	// If we are already connected, we just disconnect
     	if (Global.isConnected) {
     		Global.isConnected = false;
     		syncRunner.enDisconnect();
@@ -3469,9 +3563,10 @@ public class NeverNote extends QMainWindow{
     		return;
     	}
     	
+    	OAuthTokenizer tokenizer = new OAuthTokenizer();
     	AESEncrypter aes = new AESEncrypter();
     	try {
-			aes.decrypt(new FileInputStream(Global.getFileManager().getHomeDirFile("secure.txt")));
+			aes.decrypt(new FileInputStream(Global.getFileManager().getHomeDirFile("oauth.txt")));
 		} catch (FileNotFoundException e) {
 			// File not found, so we'll just get empty strings anyway. 
 		}
@@ -3502,38 +3597,47 @@ public class NeverNote extends QMainWindow{
 		syncRunner.userStoreUrl = Global.userStoreUrl;
 		syncRunner.noteStoreUrl = Global.noteStoreUrl;
 		syncRunner.noteStoreUrlBase = Global.noteStoreUrlBase;
-
-		String userid = aes.getUserid();
-		String password = aes.getPassword();
-		if (!userid.equals("") && !password.equals("")) {
-    		Global.username = userid;
-    		Global.password = password;
-			syncRunner.username = Global.username;
-			syncRunner.password = Global.password;
+		
+		
+		
+		String authString = aes.getString();
+		if (!authString.equals("")) {
+			tokenizer.tokenize(authString);
+			syncRunner.authToken = tokenizer.oauth_token;
     		syncRunner.enConnect();
 		}		
 
 		Global.isConnected = syncRunner.isConnected;
 		
 		if (!Global.isConnected) {
-			// Show the login dialog box
-			if (!Global.automaticLogin() || userid.equals("")|| password.equals("")) {
-				LoginDialog login = new LoginDialog();
-				login.exec();
-		
-				if (!login.okPressed()) {
-					return;
-				}
-        
-				Global.username = login.getUserid();
-				Global.password = login.getPassword();
+	    	OAuthWindow window = new OAuthWindow(logger);
+	    	if (window.error) {
+	    		setMessage(window.errorMessage);
+	    		return;
+	    	}
+	    	window.exec();
+	    	if (window.error) {
+	    		setMessage(window.errorMessage);
+	    		return;
 			}
-			syncRunner.username = Global.username;
-			syncRunner.password = Global.password;
+	    	tokenizer.tokenize(window.response);
+	    	if (tokenizer.oauth_token.equals("")) {
+	    		setMessage(tr("Invalid authorization token received."));
+	    		return;
+	    	}
+	    	aes.setString(window.response);
+	    	try {
+				aes.encrypt(new FileOutputStream(Global.getFileManager().getHomeDirFile("oauth.txt")));
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	    	syncRunner.authToken = tokenizer.oauth_token;
 			syncRunner.enConnect();
 			Global.isConnected = syncRunner.isConnected;
 		}
-		
+//		Global.username = syncRunner.username;
+		    	
 		if (!Global.isConnected)
 			return;
 		setupOnlineMenu();
@@ -3675,7 +3779,6 @@ public class NeverNote extends QMainWindow{
 	// Handle the event that a user selects a note from the table
     @SuppressWarnings("unused")
 	private void noteTableSelection() {
-    	System.out.println("Selecting note");
 		logger.log(logger.HIGH, "Entering NeverNote.noteTableSelection");
 
 		saveNote();
@@ -4959,6 +5062,15 @@ public class NeverNote extends QMainWindow{
     @SuppressWarnings("unused")
 	private void updateNoteTitle(String guid, String title) {
     	listManager.setNoteSynchronized(guid, false);
+    	
+    	// We do this manually because if we've edited the note in an 
+    	// external window we run into the possibility of signal recursion
+    	// looping.
+    	if (guid.equals(currentNoteGuid)) {
+    		browserWindow.titleLabel.blockSignals(true);
+    		browserWindow.titleLabel.setText(title);
+    		browserWindow.titleLabel.blockSignals(false);
+    	}
     }
     // Signal received that note content has changed.  Normally we just need the guid to remove
     // it from the cache.
@@ -5060,7 +5172,7 @@ public class NeverNote extends QMainWindow{
 		oldNote.setResources(resList);
 		duplicateNote(oldNote);
 	}
-	private void duplicateNote(Note oldNote) {
+    private void duplicateNote(Note oldNote) {
 		waitCursor(true);
 		// Now that we have a good notebook guid, we need to move the conflicting note
 		// to the local notebook
@@ -5134,21 +5246,7 @@ public class NeverNote extends QMainWindow{
 		listManager.countNotebookResults(listManager.getNoteIndex());
 		waitCursor(false);
 	}
-	// View all notes
-	@SuppressWarnings("unused")
-	private void allNotes() {
-		clearAttributeFilter();
-		clearNotebookFilter();
-		clearSavedSearchFilter();
-		clearTrashFilter();
-		clearTagFilter();
-		searchField.clear();
-		if (Global.mimicEvernoteInterface) {
-			notebookTree.selectGuid("");
-		}
-		notebookTreeSelection();
-		refreshEvernoteNote(true);
-	}
+	
 	private void refreshLinks(){
 		if (!Global.isConnected)
     		remoteConnect();
@@ -5234,12 +5332,21 @@ public class NeverNote extends QMainWindow{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		if(relatedNotes!=null){
-			for(Note j : relatedNotes){
-				Global.linksTable.setLink(currentNoteGuid, j.getGuid(), Global.LINK_STRENGTH_FINDRELATED);
-			}
+	}
+	// View all notes
+	@SuppressWarnings("unused")
+	private void allNotes() {
+		clearAttributeFilter();
+		clearNotebookFilter();
+		clearSavedSearchFilter();
+		clearTrashFilter();
+		clearTagFilter();
+		searchField.clear();
+		if (Global.mimicEvernoteInterface) {
+			notebookTree.selectGuid("");
 		}
-		browserWindow.showLinks(true);
+		notebookTreeSelection();
+		refreshEvernoteNote(true);
 	}
 	// Merge notes
 	@SuppressWarnings("unused")
@@ -6126,6 +6233,15 @@ public class NeverNote extends QMainWindow{
         		else
         			noteReader.setNotebookGuid(listManager.getNotebookIndex().get(0).getGuid());
   
+        		waitCursor(false);
+        		if (QMessageBox.question(this, tr("Confirmation"), 
+        				tr("Create new tags from import?"),
+        				QMessageBox.StandardButton.Yes, 
+        				QMessageBox.StandardButton.No) == StandardButton.Yes.value()) {
+        							noteReader.createNewTags = true;
+        		} else
+        			noteReader.createNewTags = false;
+        		waitCursor(true);
         		noteReader.importData(fileName);
     	
         		if (noteReader.lastError != 0) {
@@ -6264,6 +6380,19 @@ public class NeverNote extends QMainWindow{
 				importDeleteWatcher.addPath(records.get(i).folder);
 		}
 		
+		logger.log(logger.EXTREME, "List of directories being watched (kept)...");
+		List<String> monitorDelete = importKeepWatcher.directories();
+		for (int i=0; i<monitorDelete.size(); i++) {
+			logger.log(logger.EXTREME, monitorDelete.get(i));
+		}
+		logger.log(logger.EXTREME, "<end of list>");
+		logger.log(logger.EXTREME, "List of directories being watched (delete)...");
+		monitorDelete = importDeleteWatcher.directories();
+		for (int i=0; i<monitorDelete.size(); i++) {
+			logger.log(logger.EXTREME, monitorDelete.get(i));
+		}
+		logger.log(logger.EXTREME, "<end of list>");
+		
 		importKeepWatcher.directoryChanged.connect(this, "folderImportKeep(String)");
 		importDeleteWatcher.directoryChanged.connect(this, "folderImportDelete(String)");
 		
@@ -6280,6 +6409,8 @@ public class NeverNote extends QMainWindow{
 			}
 		}
 	}
+	
+	// Menu folderImport action triggered
 	public void folderImport() {
 		List<WatchFolderRecord> recs = conn.getWatchFolderTable().getAll();
 		WatchFolder dialog = new WatchFolder(recs, listManager.getNotebookIndex());
@@ -6314,7 +6445,7 @@ public class NeverNote extends QMainWindow{
 	}
 	
 	public void folderImportKeep(String dirName) throws NoSuchAlgorithmException {
-		
+		logger.log(logger.LOW, "Inside folderImportKeep");
 		String whichOS = System.getProperty("os.name");
 		if (whichOS.contains("Windows")) 
 			dirName = dirName.replace('/','\\');
@@ -6326,28 +6457,77 @@ public class NeverNote extends QMainWindow{
 		String notebook = conn.getWatchFolderTable().getNotebook(dirName);
 
 		for (int i=0; i<list.size(); i++){
-			
+			logger.log(logger.LOW, "File found: " +list.get(i).fileName());
 			boolean redundant = false;
 			// Check if we've already imported this one or if it existed before
 			for (int j=0; j<importedFiles.size(); j++) {
+				logger.log(logger.LOW, "redundant file list: " +list.get(i).absoluteFilePath());
 				if (importedFiles.get(j).equals(list.get(i).absoluteFilePath()))
 					redundant = true;
 			}
 			
+			logger.log(logger.LOW, "Checking if redundant: " +redundant);
 			if (!redundant) {
 				importer.setFileInfo(list.get(i));
 				importer.setFileName(list.get(i).absoluteFilePath());
 			
 			
+				logger.log(logger.LOW, "File importing is a file: " +list.get(i).isFile());
+				logger.log(logger.LOW, "File importing is a valid: " +importer.isValidType());
 				if (list.get(i).isFile() && importer.isValidType()) {
 			
 					if (!importer.importFile()) {
 						// If we can't get to the file, it is probably locked.  We'll try again later.
 						logger.log(logger.LOW, "Unable to save externally edited file.  Saving for later.");
 						importFilesKeep.add(list.get(i).absoluteFilePath());
-						return;
-					}
+					} else {
 
+						Note newNote = importer.getNote();
+						newNote.setNotebookGuid(notebook);
+						newNote.setTitle(dir.at(i));
+						NoteMetadata metadata = new NoteMetadata();
+						metadata.setDirty(true);
+						metadata.setGuid(newNote.getGuid());
+						listManager.addNote(newNote, metadata);
+						conn.getNoteTable().addNote(newNote, true);
+						noteTableView.insertRow(newNote, metadata, true, -1);
+						listManager.updateNoteContent(newNote.getGuid(), importer.getNoteContent());
+						listManager.countNotebookResults(listManager.getNoteIndex());
+						importedFiles.add(list.get(i).absoluteFilePath());
+					}
+				}
+			}
+		}
+        
+        
+	}
+	
+	public void folderImportDelete(String dirName) {
+		logger.log(logger.LOW, "Inside folderImportDelete");
+		String whichOS = System.getProperty("os.name");
+		if (whichOS.contains("Windows")) 
+			dirName = dirName.replace('/','\\');
+		
+		FileImporter importer = new FileImporter(logger, conn);
+		QDir dir = new QDir(dirName);
+		List<QFileInfo> list = dir.entryInfoList();
+		String notebook = conn.getWatchFolderTable().getNotebook(dirName);
+		
+		for (int i=0; i<list.size(); i++){
+			logger.log(logger.LOW, "File found: " +list.get(i).fileName());
+			importer.setFileInfo(list.get(i));
+			importer.setFileName(list.get(i).absoluteFilePath());
+			
+			logger.log(logger.LOW, "File importing is a file: " +list.get(i).isFile());
+			logger.log(logger.LOW, "File importing is a valid: " +importer.isValidType());
+			if (list.get(i).isFile() && importer.isValidType()) {
+		
+				if (!importer.importFile()) {
+					// If we can't get to the file, it is probably locked.  We'll try again later.
+					logger.log(logger.LOW, "Unable to save externally edited file.  Saving for later.");
+					importFilesKeep.add(list.get(i).absoluteFilePath());
+				} else {
+		
 					Note newNote = importer.getNote();
 					newNote.setNotebookGuid(notebook);
 					newNote.setTitle(dir.at(i));
@@ -6359,50 +6539,8 @@ public class NeverNote extends QMainWindow{
 					noteTableView.insertRow(newNote, metadata, true, -1);
 					listManager.updateNoteContent(newNote.getGuid(), importer.getNoteContent());
 					listManager.countNotebookResults(listManager.getNoteIndex());
-					importedFiles.add(list.get(i).absoluteFilePath());
+					dir.remove(dir.at(i));
 				}
-			}
-		}
-        
-        
-	}
-	
-	public void folderImportDelete(String dirName) {
-		
-		String whichOS = System.getProperty("os.name");
-		if (whichOS.contains("Windows")) 
-			dirName = dirName.replace('/','\\');
-		
-		FileImporter importer = new FileImporter(logger, conn);
-		QDir dir = new QDir(dirName);
-		List<QFileInfo> list = dir.entryInfoList();
-		String notebook = conn.getWatchFolderTable().getNotebook(dirName);
-		
-		for (int i=0; i<list.size(); i++){
-			importer.setFileInfo(list.get(i));
-			importer.setFileName(list.get(i).absoluteFilePath());
-			
-			if (list.get(i).isFile() && importer.isValidType()) {
-		
-				if (!importer.importFile()) {
-					// If we can't get to the file, it is probably locked.  We'll try again later.
-					logger.log(logger.LOW, "Unable to save externally edited file.  Saving for later.");
-					importFilesKeep.add(list.get(i).absoluteFilePath());
-					return;
-				}
-		
-				Note newNote = importer.getNote();
-				newNote.setNotebookGuid(notebook);
-				newNote.setTitle(dir.at(i));
-				NoteMetadata metadata = new NoteMetadata();
-				metadata.setDirty(true);
-				metadata.setGuid(newNote.getGuid());
-				listManager.addNote(newNote, metadata);
-				conn.getNoteTable().addNote(newNote, true);
-				noteTableView.insertRow(newNote, metadata, true, -1);
-				listManager.updateNoteContent(newNote.getGuid(), importer.getNoteContent());
-				listManager.countNotebookResults(listManager.getNoteIndex());
-				dir.remove(dir.at(i));
 			}
 		}
 	}
@@ -6541,15 +6679,17 @@ public class NeverNote extends QMainWindow{
 	@Override
 	public void changeEvent(QEvent e) {
 		if (e.type() == QEvent.Type.WindowStateChange) {
-			if (isMinimized() && Global.showTrayIcon()) {
-				e.accept();
-				QTimer.singleShot(10, this, "hide()");
-				return;
+			if (QSystemTrayIcon.isSystemTrayAvailable()) {
+				if (isMinimized() && (Global.showTrayIcon() || Global.showTrayIcon())) {
+					e.accept();
+					QTimer.singleShot(10, this, "hide()");
+					return;
+				}
+				if (isMaximized())
+					windowMaximized = true;
+				else 
+					windowMaximized = false;
 			}
-			if (isMaximized())
-				windowMaximized = true;
-			else 
-				windowMaximized = false;
  		}
 	}
 	
