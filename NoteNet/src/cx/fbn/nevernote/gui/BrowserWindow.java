@@ -958,25 +958,6 @@ public class BrowserWindow extends QWidget {
         }
 	}
 	
-//	// Handle setting a note from external command
-//	
-//	public void noteClicked(String selectedGuid){
-//		logger.log(logger.EXTREME, "Note Clicked: " + selectedGuid);
-//		String sid = user.getShardId();
-//		String lid = "";
-//		Note selectedNote = conn.getNoteTable().getNote(selectedGuid, false, false, false, false, false);
-//   		if (selectedNote.getUpdateSequenceNum() > 0) {
-//   			gid = selectedGuid;
-//   			lid = selectedGuid;
-//   		} else {
-//   			gid = "00000000-0000-0000-0000-000000000000";
-//   			lid = selectedGuid;
-//   		}
-////			gid = selectedGuid;
-////			lid = selectedGuid;
-//		evernoteLinkClicked.emit(sid, lid);
-//	}
-	
 	
 	// Listener for when a link is clicked
 	@SuppressWarnings("unused")
