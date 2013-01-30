@@ -36,15 +36,10 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map.Entry;
-import java.util.Map;
 import java.util.StringTokenizer;
-
-import notenet.ActivationNode;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-
 
 import com.evernote.edam.limits.Constants;
 import com.evernote.edam.type.Data;
@@ -188,11 +183,7 @@ public class BrowserWindow extends QWidget {
 	private final DatabaseConnection conn;
 	private final QCalendarWidget createdCalendarWidget;
 	private final QCalendarWidget alteredCalendarWidget;
-	private final QCalendarWidget subjectCalendarWidget;	
-
-	//NoteNet view areas
-	private final ContentView linksViewer;
-	private final ContentView activationViewer;
+	private final QCalendarWidget subjectCalendarWidget;
 
 	public final QPushButton undoButton;
 	public final QAction	undoAction;
@@ -416,30 +407,6 @@ public class BrowserWindow extends QWidget {
 		browser.linkClicked.connect(this, "linkClicked(QUrl)");
 		currentHyperlink = "";
 		
-		//Setup the links viewer
-		linksViewer = new ContentView(this);
-		linksViewer.page().setLinkDelegationPolicy(
-				QWebPage.LinkDelegationPolicy.DelegateAllLinks);
-		linksViewer.setVisible(false);
-		linksViewer.linkClicked.connect(this, "linkClicked(QUrl)");
-		QFont linksFont = new QFont();
-		linksFont.setFamily("Courier");
-		linksFont.setFixedPitch(true);
-		linksFont.setPointSize(10);
-		linksViewer.setFont(linksFont);
-		
-		//Setup the activation viewer
-		activationViewer = new ContentView(this);
-		activationViewer.page().setLinkDelegationPolicy(
-				QWebPage.LinkDelegationPolicy.DelegateAllLinks);
-		activationViewer.setVisible(true);
-		activationViewer.linkClicked.connect(this, "linkClicked(QUrl)");
-		QFont activationFont = new QFont();
-		activationFont.setFamily("Courier");
-		activationFont.setFixedPitch(true);
-		activationFont.setPointSize(10);
-		activationViewer.setFont(activationFont);
-				
 		//Setup the source editor
 		sourceEdit = new QTextEdit(this);
 		sourceEdit.setVisible(false);
@@ -625,9 +592,6 @@ public class BrowserWindow extends QWidget {
 		editSplitter.addWidget(browser);
 		editSplitter.setOrientation(Qt.Orientation.Vertical);
 		editSplitter.addWidget(sourceEdit);
-		editSplitter.addWidget(linksViewer);
-		editSplitter.addWidget(activationViewer);
-		
 
 		
 
@@ -780,22 +744,16 @@ public class BrowserWindow extends QWidget {
 
 	public void setContent(QByteArray data) {
 		sourceEdit.blockSignals(true);
-		linksViewer.blockSignals(false);
-		activationViewer.blockSignals(true);
 		browser.setContent(data);
 		setSource();
 	}
-	
 	// get/set current note
 	public void setNote(Note n) {
 		currentNote = n;
 		if (n == null)
 			n = new Note();
 		saveNoteTitle = n.getTitle();
-		if(linksViewer.isVisible()) setLinks();
-		Global.activatedNotes.fadeActivation(Global.FADE_PROPORTION);
-		Global.activatedNotes.activate(n.getGuid(), 1, null, -1);
-		if(activationViewer.isVisible()) setActivated();
+
 	}
 
 	public Note getNote() {
@@ -957,25 +915,6 @@ public class BrowserWindow extends QWidget {
         	logger.log(logger.LOW, "Error opening file :" +url);
         }
 	}
-	
-//	// Handle setting a note from external command
-//	
-//	public void noteClicked(String selectedGuid){
-//		logger.log(logger.EXTREME, "Note Clicked: " + selectedGuid);
-//		String sid = user.getShardId();
-//		String lid = "";
-//		Note selectedNote = conn.getNoteTable().getNote(selectedGuid, false, false, false, false, false);
-//   		if (selectedNote.getUpdateSequenceNum() > 0) {
-//   			gid = selectedGuid;
-//   			lid = selectedGuid;
-//   		} else {
-//   			gid = "00000000-0000-0000-0000-000000000000";
-//   			lid = selectedGuid;
-//   		}
-////			gid = selectedGuid;
-////			lid = selectedGuid;
-//		evernoteLinkClicked.emit(sid, lid);
-//	}
 	
 	
 	// Listener for when a link is clicked
@@ -1468,7 +1407,7 @@ public class BrowserWindow extends QWidget {
 		if (text.trim().equalsIgnoreCase(""))
 			return;
 
-		NoteQuickLinkDialog dialog = new NoteQuickLinkDialog(logger, conn, text, currentNote.getGuid());
+		NoteQuickLinkDialog dialog = new NoteQuickLinkDialog(logger, conn, text);
 		if (dialog.getResults().size() == 0) {
 			QMessageBox.critical(null, tr("No Matches Found") ,tr("No matching notes found."));
 			return;
@@ -3523,51 +3462,11 @@ public class BrowserWindow extends QWidget {
 		//syntaxHighlighter.rehighlight();
 		sourceEdit.blockSignals(false);
 	}
-	
-	// Show linked notes in links viewer	
-	private void setLinks(){
-		String linksText = "This note linked to:<br><br>";
-		Map<String, Double> linksMap = Global.linksTable.getLinks(currentNote.getGuid());
-		User user = Global.getUserInformation();
-		for(Entry<String,Double> e : linksMap.entrySet()){
-			Note note = conn.getNoteTable().getNote(e.getKey(), false, false, false, false, false);
-			String noteURL =  "evernote:///view/" + user.getId() + "/" + user.getShardId() + "/" + note.getGuid() + "/" + note.getGuid() + "/";
-			linksText += "<a title=\"" + noteURL + " style=\" color:#69aa35\"\"=\"\" href=\"" + noteURL + "style=\"color:#69aa35\">" + note.getTitle() + "</a> with strength " + e.getValue() + "<br>";
-			
-		}
-		linksViewer.setHtml(linksText);		
-	}
-	
-	// Show activated notes in activation viewer
-	private void setActivated(){
-		String activationText = "Currently activated notes:<br><br>";
-		List<ActivationNode> activeNotes = Global.activatedNotes.getActivatedNotes();
-		User user = Global.getUserInformation();
-		for(ActivationNode act : activeNotes){
-			Note note = conn.getNoteTable().getNote(act.getNoteGuid(), false, false, false, false, false);
-			String noteURL =  "evernote:///view/" + user.getId() + "/" + user.getShardId() + "/" + note.getGuid() + "/" + note.getGuid() + "/";
-			activationText += "<a title=\"" + noteURL + " style=\" color:#69aa35\"\"=\"\" href=\"" + noteURL + "style=\"color:#69aa35\">" + note.getTitle() + "</a> with strength " + act.getActivation() + "<br>";
-			
-		}
-		activationViewer.setHtml(activationText);
-	}
 
 	// show/hide view source window
 	public void showSource(boolean value) {
 		setSource();
 		sourceEdit.setVisible(value);
-	}
-	
-	public void showLinks(boolean value) {
-		if(value)
-			setLinks();
-		linksViewer.setVisible(value);
-	}
-	
-	public void showActivation(boolean value) {
-		if(value)
-			setActivated();
-		activationViewer.setVisible(value);
 	}
 
 	// Remove HTML tags

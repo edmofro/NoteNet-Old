@@ -190,6 +190,8 @@ public class NotebookTable {
 	// Delete the notebook based on a guid
 	public void expungeNotebook(String guid, boolean needsSync) {
 		boolean check;
+		Notebook n;
+		n = getNotebook(guid);
         NSqlQuery query = new NSqlQuery(db.getConnection());
 
        	check = query.prepare("delete from "+dbName+" where guid=:guid");
@@ -203,7 +205,7 @@ public class NotebookTable {
 			logger.log(logger.MEDIUM, dbName+" delete failed.");
 		
 		// Signal the parent that work needs to be done
-		if  (needsSync) {
+		if  (needsSync && n!=null && n.getUpdateSequenceNum() > 0) {
 			DeletedTable deletedTable = new DeletedTable(logger, db);
 			deletedTable.addDeletedItem(guid, dbName);
 		}
@@ -330,7 +332,8 @@ public class NotebookTable {
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
-			tempNotebook.setStack(query.valueString(7));
+			if (query.valueString(7) != null && !query.valueString(7).trim().equals(""))
+				tempNotebook.setStack(query.valueString(7));
 			index.add(tempNotebook); 
 		}	
 		return index;
@@ -377,7 +380,8 @@ public class NotebookTable {
 				e.printStackTrace();
 			}
 			tempNotebook.setPublished(new Boolean(query.valueString(6)));
-			tempNotebook.setStack(query.valueString(7));
+			if (query.valueString(7) != null && !query.valueString(7).trim().equals(""))
+				tempNotebook.setStack(query.valueString(7));
 			
 			if (tempNotebook.isPublished()) {
 				Publishing p = new Publishing();
@@ -503,7 +507,8 @@ public class NotebookTable {
 				e.printStackTrace();
 			}
 			tempNotebook.setPublished(new Boolean(query.valueString(6)));
-			tempNotebook.setStack(query.valueString(7));
+			if (query.valueString(7) != null && !query.valueString(7).trim().equals(""))
+				tempNotebook.setStack(query.valueString(7));
 			
 			if (tempNotebook.isPublished()) {
 				Publishing p = new Publishing();
@@ -519,6 +524,55 @@ public class NotebookTable {
 			index.add(tempNotebook);
 		}	
 		return index;	
+	}
+	// Get a list of notes that need to be updated
+	public Notebook getNotebook(String guid) {
+		Notebook tempNotebook;
+		boolean check;
+						
+        NSqlQuery query = new NSqlQuery(db.getConnection());
+        				
+		query.prepare("Select guid, sequence, name, defaultNotebook, " +
+				"serviceCreated, serviceUpdated, published, stack, "+
+				"publishinguri, publishingascending, publishingPublicDescription, "+
+				"publishingOrder " +
+				"from "+dbName+" where guid=:guid");
+		query.bindValue(":guid", guid);
+		check  = query.exec();
+		if (!check) 
+			logger.log(logger.EXTREME, dbName+" SQL retrieve has failed.");
+		while (query.next()) {
+			tempNotebook = new Notebook();
+			tempNotebook.setGuid(query.valueString(0));
+			int sequence = new Integer(query.valueString(1)).intValue();
+			tempNotebook.setUpdateSequenceNum(sequence);
+			tempNotebook.setName(query.valueString(2));
+			
+			DateFormat indfm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+			try {
+				tempNotebook.setServiceCreated(indfm.parse(query.valueString(4)).getTime());
+				tempNotebook.setServiceUpdated(indfm.parse(query.valueString(5)).getTime());
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			tempNotebook.setPublished(new Boolean(query.valueString(6)));
+			if (query.valueString(7) != null && !query.valueString(7).trim().equals(""))
+				tempNotebook.setStack(query.valueString(7));
+			
+			if (tempNotebook.isPublished()) {
+				Publishing p = new Publishing();
+				p.setUri(query.valueString(8));
+				p.setAscending(query.valueBoolean(9, false));
+				p.setPublicDescription(query.valueString(10));
+				p.setOrder(NoteSortOrder.findByValue(query.valueInteger(11)));
+				if (p.getPublicDescription() != null && p.getPublicDescription().trim().equalsIgnoreCase(""))
+					p.setPublicDescription(null);
+				tempNotebook.setPublishing(p);
+			}
+			
+			return tempNotebook;
+		}	
+		return null;	
 	}
 	// This is a convience method to check if a tag exists & update/create based upon it
 	public void syncNotebook(Notebook notebook, boolean isDirty) {
@@ -561,10 +615,10 @@ public class NotebookTable {
 	public void setDefaultNotebook(String guid) {
 		NSqlQuery query = new NSqlQuery(db.getConnection());
 		
-		query.prepare("Update "+dbName+" set defaultNotebook=false where linked=false");
+		query.prepare("Update "+dbName+" set defaultNotebook=false, isDirty=true where linked=false and defaultNotebook=true");
 		if (!query.exec())
 			logger.log(logger.EXTREME, "Error removing default "+dbName+".");
-		query.prepare("Update "+dbName+" set defaultNotebook=true where guid=:guid where linked=false");
+		query.prepare("Update "+dbName+" set defaultNotebook=true, isDirty=true where guid=:guid and linked=false");
 		query.bindValue(":guid", guid);
 		if (!query.exec())
 			logger.log(logger.EXTREME, "Error setting default "+dbName+".");

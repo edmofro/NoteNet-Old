@@ -160,12 +160,14 @@ public class NoteResourceTable  {
 	}
 	
 	public void saveNoteResource(Resource r, boolean isDirty) {
-		logger.log(logger.HIGH, "Entering DBRunner.saveNoteResources");
+		logger.log(logger.HIGH, "Entering saveNoteResources: isDirty " +isDirty);
 		boolean check;
+		logger.log(logger.HIGH, "Note: " +r.getNoteGuid());
+		logger.log(logger.HIGH, "Resource: " +r.getGuid());
 		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
 		SimpleDateFormat simple = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		
-		check = query.prepare("Insert Into NoteResources ("
+		query.prepare("Insert Into NoteResources ("
 				+"guid, noteGuid, dataHash, dataSize, dataBinary, updateSequenceNumber, "
 				+"mime, width, height, duration, active, recognitionHash, "				
 				+"recognitionSize, recognitionBinary, attributeSourceUrl, attributeTimestamp, "
@@ -180,17 +182,12 @@ public class NoteResourceTable  {
 				+":attributeCameraModel, "
 				+":attributeClientWillIndex, :attributeRecoType, :attributeFileName, :attributeAttachment, "
 				+":isDirty, true)");
-		if (!check) {
-			logger.log(logger.EXTREME, "NoteResource SQL insert prepare has failed.");
-			logger.log(logger.MEDIUM, query.lastError());
-		}
 	
 			query.bindValue(":guid", r.getGuid());
 			query.bindValue(":noteGuid", r.getNoteGuid());
 			if (r.getData() != null) {
-//				query.bindValue(":dataHash", new QByteArray(r.getData().getBodyHash()).toHex());
-//				query.bindValue(":dataHash", "");
 				query.bindValue(":dataHash", byteArrayToHexString(r.getData().getBodyHash()));
+//				query.bindValue(":dataHash", "c0369123fe9871d675ae456fd056ba33");
 				query.bindValue(":dataSize", r.getData().getSize());
 				query.bindBlob(":dataBody", r.getData().getBody());
 			}
@@ -225,7 +222,7 @@ public class NoteResourceTable  {
 				query.bindValue(":attributeRecoType", r.getAttributes().getRecoType());
 				query.bindValue(":attributeFileName", r.getAttributes().getFileName());
 				query.bindValue(":attributeAttachment", r.getAttributes().isAttachment());			
-			}
+			} 
 			query.bindValue(":isDirty", isDirty);
 						
 			check = query.exec();
@@ -673,4 +670,10 @@ public class NoteResourceTable  {
 		logger.log(logger.HIGH, "Leaving NoteResourceTable.getDistinctNoteGuids()");
 		return guids;
 	}
+
+	public void resetAllDirty() {
+		NSqlQuery query = new NSqlQuery(db.getResourceConnection());
+		query.exec("update noteresources set isdirty=false");
+	}
 }
+

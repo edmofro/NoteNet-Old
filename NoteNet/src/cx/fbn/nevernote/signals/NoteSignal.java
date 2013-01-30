@@ -33,7 +33,6 @@ public class NoteSignal extends QSignalEmitter {
 	public Signal2<String, String>		tagsAdded = new Signal2<String, String>();
 	public Signal2<String, String> 		titleChanged = new Signal2<String, String>();
 	public Signal2<String, String> 		noteChanged = new Signal2<String, String>();
-	public Signal1<String>				noteSelected = new Signal1<String>();
 	public Signal2<String, String> 		notebookChanged = new Signal2<String,String>();
 	public Signal2<String, QDateTime>	createdDateChanged = new Signal2<String, QDateTime>();
 	public Signal2<String, QDateTime>	alteredDateChanged = new Signal2<String, QDateTime>();
