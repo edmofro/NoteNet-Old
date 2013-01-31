@@ -9,6 +9,7 @@ import com.trolltech.qt.gui.QMainWindow;
 import com.trolltech.qt.gui.QWidget;
 import com.trolltech.qt.webkit.QWebView;
 
+import cx.fbn.nevernote.Global;
 import cx.fbn.nevernote.NeverNote;
 import cx.fbn.nevernote.gui.BrowserWindow;
 
@@ -35,8 +36,8 @@ public class VisualizerWindow extends QWebView {
 	    	super();
 	    	application = neverNote;
 	    	this.page().mainFrame().javaScriptWindowObjectCleared.connect(this, "javaScriptWindowObjectCleared()");
-	    	this.load(new QUrl(VisualizerWindow.class.getResource("index.html").toExternalForm()));	
-//	    	this.titleChanged.connect(this, "loadFinished()"); 
+	    	this.load(new QUrl(Global.getFileManager().getHTMLDirPath("index.html")));	
+	    	//	    	this.titleChanged.connect(this, "loadFinished()"); 
 	    }
 	    
 	    @SuppressWarnings("unused")

@@ -563,6 +563,7 @@ public class NeverNote extends QMainWindow{
         browserWindow = new BrowserWindow(conn);
         
         //Visualizer window init
+        System.out.println("Setting up vis window");
         visualizerWindow = new VisualizerWindow(this);
         visualizerWindow.setVisible(visualize);
         visualizerWindow.show();

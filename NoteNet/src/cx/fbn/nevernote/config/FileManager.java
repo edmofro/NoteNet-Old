@@ -23,6 +23,9 @@ public class FileManager {
     private final File dbDir;
 
     private final File logsDir;
+    
+    private final File htmlDir;
+    private final String htmlDirPath;
 
     private final String imagesDirPath;
     private final File imagesDir;
@@ -67,11 +70,15 @@ public class FileManager {
         this.homeDirPath = slashTerminatePath(homeDir.getPath());
         this.programDirPath = slashTerminatePath(programDir.getPath());
         
+        htmlDir = new File(programDir, "html");
+        checkExistingReadableDir(htmlDir);
+        htmlDirPath = slashTerminatePath(htmlDir.getPath());
+        
         // Read-only
         imagesDir = new File(programDir, "images");
         checkExistingReadableDir(imagesDir);
         imagesDirPath = slashTerminatePath(imagesDir.getPath());
-
+        
         qssDir = new File(programDir, "qss");
         checkExistingReadableDir(qssDir);
         qssDirPath = slashTerminatePath(qssDir.getPath());
@@ -188,6 +195,21 @@ public class FileManager {
      */    
     public String getDbDirPath(String relativePath) {
         return dbDirPath + toPlatformPathSeparator(relativePath);
+    }
+    
+    /**
+     * Get a file below the 'html' directory.
+     */
+    public File getHTMLDirFile(String relativePath) {
+        return new File(htmlDir, toPlatformPathSeparator(relativePath));
+    }
+    
+    /**
+     * Get a path below the 'html' directory, using native {@link File#separator}.
+     * This will contain backslashes on Windows.
+     */
+    public String getHTMLDirPath(String relativePath) {
+        return htmlDirPath + toPlatformPathSeparator(relativePath);
     }
     
     /**
