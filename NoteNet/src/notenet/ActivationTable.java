@@ -71,7 +71,7 @@ public class ActivationTable{
 		}
 		if(from==null)
 			if(Global.view!=null)
-				Global.view.start();
+				Global.view.evaluateScripts();
 	}
 	
 	private ActivationNode remove(int actIndex) {

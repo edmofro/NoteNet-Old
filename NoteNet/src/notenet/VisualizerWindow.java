@@ -1,9 +1,14 @@
 package notenet;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
 import org.bouncycastle.util.test.Test;
 
 import com.trolltech.qt.core.QEventLoop;
+import com.trolltech.qt.core.QMutex;
 import com.trolltech.qt.core.QUrl;
+import com.trolltech.qt.core.QWaitCondition;
 import com.trolltech.qt.gui.QApplication;
 import com.trolltech.qt.gui.QMainWindow;
 import com.trolltech.qt.gui.QWidget;
@@ -20,11 +25,14 @@ public class VisualizerWindow extends QWebView {
 	
 	private boolean loaded = false;
 	private String scriptQueue = "";
+	private Queue<String> scripts = new LinkedList<String>();
 	private int maxNameLength = 30;
 	QBridge bridge = new QBridge(this);
 	NeverNote application;
 	String replaceString = "xXx";
 	public Signal1<String> selectionSignal = new Signal1<String>();
+	private QWaitCondition waker = new QWaitCondition();
+	private QMutex mutex = new QMutex();
 	
 	public static void main(String[] args){
 		 QApplication.instance();
@@ -53,16 +61,48 @@ public class VisualizerWindow extends QWebView {
 	    	this.page().mainFrame().evaluateJavaScript(scriptQueue);
 	    	scriptQueue="";
 	    	loaded=true;
+//	    	Thread scriptRunner = new Thread(){
+//	    		public void run(){
+//	    			while(true){
+//	    				try {
+//							sleep(1000);
+//						} catch (InterruptedException e) {
+//							e.printStackTrace();
+//						}
+//	    				System.out.println("Checking for scripts");
+//	    				if(!scripts.isEmpty()){
+//	    					evaluateScript(scripts.poll());
+//	    				}
+//	    			}
+//	    		}
+//	    	};
+//	    	scriptRunner.start();
+	    }    
+	    
+	    
+	    public void evaluateScripts(){
+	    	String script;
+	    	while(!scripts.isEmpty()){
+	    		script = scripts.poll();
+		    	System.out.println("// Evaluating script: \n" + script);
+		    	this.page().mainFrame().evaluateJavaScript(script);
+	    	}
+		    	
 	    }
 	   
 	    public void executeScript(String script){
 			script += "start();";
 			if(loaded){
-//		    	System.out.println("// Executing script: \n" + script);
-		    	this.page().mainFrame().evaluateJavaScript(script);
+		    	System.out.println("// Executing script: \n" + script);
+//		    	this.page().mainFrame().evaluateJavaScript(script);
+				scripts.offer(script);
 			} else{
 				scriptQueue += script;
 			}
+	    }
+	    
+	    public void scriptExecutionDone(){
+	    	waker.wakeAll();
 	    }
 	    
 	    public void start(){
