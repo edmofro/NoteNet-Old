@@ -21,8 +21,15 @@
 <body>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script type="text/javascript">
-// 	setTimeout(test,0); //uncomment for testing code to run
+// 	setTimeout(test,0); //uncomment for testing code to run	
 
+	// Pull a javascript script off the queue and evaluate
+	setInterval(function() {
+		if(bridgeConnected){
+			bridge.callMethod("processScript");
+		}
+	},200);
+	
 	var bridgeConnected = true;
 	
 	var width = 960,
@@ -39,8 +46,9 @@
 	var force = d3.layout.force()
 	.nodes(nodes)
 	.links(links)
-	.charge(-400)
-	.linkDistance(function(d){return d.strength * 10})
+	.charge(-1000)
+	.friction(0.6)
+	.linkDistance(function(d){return d.strength * 25})
 	.size([width, height])
  	.on("tick", tick);
 	
@@ -77,6 +85,8 @@
 									.on("mouseover", mouseover)
 									.on("mouseout", mouseout)
 									.on("click", function(d){click(d.id);});
+// 									.attr("x", width/2)
+// 									.attr("y", height/2)
 	
 	
 	nodeAnchor.append("circle")
@@ -177,6 +187,7 @@
 		links.push({source: fromNode, target: toNode, strength: linkStrength});
 	}
 	
+	
 	//testing code
 	
 	function test(){
@@ -201,6 +212,7 @@
 		
 // 		setTimeout(emulate, 6000);
 	}
+	
 	
 	function emulate(){
 		setTimeout(function() { console.log("Executing Script"); console.log("var ncd6feeb7x42d0x4482xab10x7903f1828db5 = {id: 'cd6feeb7x42d0x4482xab10x7903f1828db5', name: 'Mercury', activation: 1.0 };		nodes.push(ncd6feeb7x42d0x4482xab10x7903f1828db5);		start();");

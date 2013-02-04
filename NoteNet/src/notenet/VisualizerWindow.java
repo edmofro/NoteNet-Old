@@ -1,5 +1,10 @@
 package notenet;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+
 import org.bouncycastle.util.test.Test;
 
 import com.trolltech.qt.core.QEventLoop;
@@ -19,12 +24,14 @@ import cx.fbn.nevernote.gui.BrowserWindow;
 public class VisualizerWindow extends QWebView {
 	
 	private boolean loaded = false;
-	private String scriptQueue = "";
+	private String loadingScriptQueue = "";
+	private Queue<String> scriptQueue = new LinkedList<String>();
 	private int maxNameLength = 30;
 	QBridge bridge = new QBridge(this);
 	NeverNote application;
 	String replaceString = "xXx";
 	public Signal1<String> selectionSignal = new Signal1<String>();
+	private int count = 0;
 	
 	public static void main(String[] args){
 		 QApplication.instance();
@@ -50,19 +57,28 @@ public class VisualizerWindow extends QWebView {
 	    public void loadFinished(){	
 	    	this.page().mainFrame().evaluateJavaScript("width = " + this.size().width() + ", height = " + this.size().height() + ";");
 	    	this.page().mainFrame().evaluateJavaScript("svg.attr(\"width\", width).attr(\"height\", height);force.size([width,height]);start();");
-	    	this.page().mainFrame().evaluateJavaScript(scriptQueue);
-	    	scriptQueue="";
+	    	System.out.println("loading " + loadingScriptQueue);
+//	    	this.page().mainFrame().evaluateJavaScript(loadingScriptQueue);
+	    	loadingScriptQueue="";
 	    	loaded=true;
 	    }
 	   
 	    public void executeScript(String script){
 			script += "start();";
-			if(loaded){
-//		    	System.out.println("// Executing script: \n" + script);
+			scriptQueue.offer(script);
+//			if(loaded){		    	
+//				scriptQueue.offer(script);
+//			} else{
+//				loadingScriptQueue += script;
+//			}
+	    }
+	    
+	    public void processScript(){
+	    	if(!scriptQueue.isEmpty()){
+		    	String script = scriptQueue.poll();
+		    	System.out.println("Evaluating " + script);
 		    	this.page().mainFrame().evaluateJavaScript(script);
-			} else{
-				scriptQueue += script;
-			}
+	    	}
 	    }
 	    
 	    public void start(){
@@ -74,6 +90,24 @@ public class VisualizerWindow extends QWebView {
 			String script = 
 					"removeById( '" + guid + "');\n";
 			executeScript(script);
+		}
+	    
+	    public void removeAll(ArrayList<ActivationNode> deactivate) {
+			String script = "";
+			for(ActivationNode act : deactivate){
+				String guid = dashReplace(act.getNoteGuid()); //Replace dashes with spaces in potential variable names so they don't confuse javascript
+				script += "removeById( '" + guid + "');\n";
+			}
+			executeScript(script);
+		}
+		
+	    public void fadeAll(List<ActivationNode> heap) {
+	    	String script = "";
+			for(ActivationNode act : heap){
+				String guid = dashReplace(act.getNoteGuid()); //Replace dashes with spaces in potential variable names so they don't confuse javascript
+				script += "changeActivationById( '" + guid + "', " + act.getActivation() + ");\n";
+			}
+			executeScript(script);		
 		}
 
 		public void fade(ActivationNode act) {
@@ -126,4 +160,7 @@ public class VisualizerWindow extends QWebView {
 			guid = reverseDashReplace(guid);
 			selectionSignal.emit(guid);
 		}
+
+
+		
 	}

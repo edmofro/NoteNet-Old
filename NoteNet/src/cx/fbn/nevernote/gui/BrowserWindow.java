@@ -793,8 +793,8 @@ public class BrowserWindow extends QWidget {
 			n = new Note();
 		saveNoteTitle = n.getTitle();
 		if(linksViewer.isVisible()) setLinks();
-		Global.activatedNotes.fadeActivation(Global.FADE_PROPORTION);
 		Global.activatedNotes.activate(n.getGuid(), 1, null, -1);
+		Global.activatedNotes.fadeActivation(Global.FADE_PROPORTION);
 		if(activationViewer.isVisible()) setActivated();
 	}
 

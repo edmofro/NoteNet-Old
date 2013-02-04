@@ -59,14 +59,14 @@ public class ActivationTable{
 			act = new ActivationNode(guid, name, actChange);
 			insert(act);
 			if(Global.view != null) Global.view.add(act, from, linkStrength);
-			if(size>=bound){
-				if(Global.view != null) Global.view.remove(pop());
-				else pop();
-			}
+//			if(size>=bound){
+//				if(Global.view != null) Global.view.remove(pop());
+//				else pop();
+//			}
 		}
-		if(actChange>0.1){
+		if(actChange>Global.ACTIVAION_PROPOGATION_THRESHOLD){
 			for(Entry<String,Double> e: Global.linksTable.getLinks(guid).entrySet()){
-				activate(e.getKey(), e.getValue()*actChange, guid, e.getValue());
+				activate(e.getKey(), e.getValue()*actChange*Global.ACTIVAION_PROPOGATION_DAMPENING, guid, e.getValue());
 			}
 		}
 		if(from==null)
@@ -84,14 +84,21 @@ public class ActivationTable{
 		ArrayList<ActivationNode> deactivate = new ArrayList<ActivationNode>(bound/4);
 		for(ActivationNode act : heap){
 			act.fade(proportionFade);
-			if(Global.view != null) Global.view.fade(act);
+//			if(Global.view != null) Global.view.fade(act);
 			if(act.getActivation()<minThreshold){
 				deactivate.add(act);
 			}
 		}
 		for(ActivationNode act : deactivate){
 			remove(heap.indexOf(act));
-			if(Global.view != null) Global.view.remove(act);
+//			if(Global.view != null) Global.view.remove(act);
+		}
+		while(heap.size()>bound){
+			deactivate.add(pop());
+		}
+		if(Global.view!=null){
+			Global.view.removeAll(deactivate);
+			Global.view.fadeAll(heap);
 		}
 //		if(Global.view!=null) Global.view.start();
 	}
