@@ -69,9 +69,6 @@ public class ActivationTable{
 				activate(e.getKey(), e.getValue()*actChange*Global.ACTIVAION_PROPOGATION_DAMPENING, guid, e.getValue());
 			}
 		}
-		if(from==null)
-			if(Global.view!=null)
-				Global.view.start();
 	}
 	
 	private ActivationNode remove(int actIndex) {
@@ -93,7 +90,7 @@ public class ActivationTable{
 			remove(heap.indexOf(act));
 //			if(Global.view != null) Global.view.remove(act);
 		}
-		while(heap.size()>bound){
+		while(heap.size()>Global.MAX_ACTIVATED){
 			deactivate.add(pop());
 		}
 		if(Global.view!=null){

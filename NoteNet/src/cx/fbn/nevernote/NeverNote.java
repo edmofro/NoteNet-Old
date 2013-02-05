@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.Vector;
 
+import notenet.VisualizerParameters;
 import notenet.VisualizerWindow;
 
 import org.apache.log4j.Level;
@@ -232,8 +233,9 @@ public class NeverNote extends QMainWindow{
     TrashTreeWidget			trashTree;					// Trashcan
     TableView	 			noteTableView;				// 	List of notes (the widget).
 
-    public VisualizerWindow	visualizerWindow;			//Window containing visualization of activation network 
+    public VisualizerWindow	visualizerWindow;			// Window containing visualization of activation network 
     boolean					visualize = true;			// Display visualization of activation network?
+    public VisualizerParameters visualizerParameters;	// Allow manipulation of parameters underlying algorithm
     
     public BrowserWindow	browserWindow;				// Window containing browser & labels
     public QToolBar 		toolBar;					// The tool bar under the menu
@@ -317,6 +319,7 @@ public class NeverNote extends QMainWindow{
     QSplitter 			leftSplitter1;				// first left hand splitter
     QSplitter			browserIndexSplitter;		// splitter between note index & note text
     QSplitter			visualizerSplitter;			// splitter between browser and visualizer
+    QSplitter			visualizerParameterSplitter;			// splitter between browser and visualizer
     
     QFileSystemWatcher	importKeepWatcher;			// Watch & keep auto-import
     QFileSystemWatcher	importDeleteWatcher;		// Watch & Delete auto-import
@@ -569,6 +572,9 @@ public class NeverNote extends QMainWindow{
         visualizerWindow.show();
         visualizerWindow.selectionSignal.connect(this, "noteClicked(String)");
         Global.view = visualizerWindow;
+        visualizerParameters = new VisualizerParameters();
+        visualizerParameterSplitter = new QSplitter();
+        visualizerParameterSplitter.setOrientation(Qt.Orientation.Vertical);
         visualizerSplitter = new QSplitter();
         visualizerSplitter.setOrientation(Qt.Orientation.Horizontal);
 
@@ -576,8 +582,10 @@ public class NeverNote extends QMainWindow{
         mainLeftRightSplitter.addWidget(visualizerSplitter);
         
         visualizerSplitter.addWidget(browserIndexSplitter);
-        visualizerSplitter.addWidget(visualizerWindow);
+        visualizerSplitter.addWidget(visualizerParameterSplitter);
         
+        visualizerParameterSplitter.addWidget(visualizerParameters);
+        visualizerParameterSplitter.addWidget(visualizerWindow);
         
         if (Global.getListView() == Global.View_List_Wide) {
         	browserIndexSplitter.addWidget(noteTableView);

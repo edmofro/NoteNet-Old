@@ -76,15 +76,11 @@ public class VisualizerWindow extends QWebView {
 	    public void processScript(){
 	    	if(!scriptQueue.isEmpty()){
 		    	String script = scriptQueue.poll();
-		    	System.out.println("Evaluating " + script);
+//		    	System.out.println("Evaluating " + script);
 		    	this.page().mainFrame().evaluateJavaScript(script);
 	    	}
 	    }
-	    
-	    public void start(){
-//	    	executeScript("start();");
-	    }
-	    
+	        
 	    public void remove(ActivationNode node) {
 			String guid = dashReplace(node.getNoteGuid()); //Replace dashes with spaces in potential variable names so they don't confuse javascript
 			String script = 
